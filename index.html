@@ -97,6 +97,14 @@
     .page                        { display: none; }   /* hide all three parts...       */
     .page:target                 { display: block; }  /* ...except the targeted one    */
     body:has(.page:target) #home { display: none; }   /* hide home while a part is open */
+.emblem .pupil {
+  transform-box: fill-box;    /* measure from the circle itself... */
+  transform-origin: center;   /* ...and grow from its middle */
+  transition: transform 0.4s;
+}
+.emblem-link:hover .pupil {   /* the pupil inside the link, while the link is hovered */
+  transform: scale(1.7);
+}
 
     /* ================================================================
        5. HOME PAGE
@@ -113,6 +121,7 @@
     }
 
     .emblem {
+      display: block;
       width: min(240px, 60vw);
       height: auto;
       color: var(--accent);           /* the SVG draws with "currentColor" */
@@ -266,6 +275,7 @@
     <section id="home">
 
       <!-- Decorative eye, drawn with SVG (safe to delete). -->
+<a class="emblem-link" href="Dangerous%20Visages/Essays_Written_by_a_Machine.pdf"">
       <svg class="emblem" viewBox="0 0 240 120" width="240" height="120" aria-hidden="true">
         <defs>
           <!-- an invisible "stencil" in the shape of the eye -->
@@ -276,13 +286,13 @@
         <path d="M10 60 C60 0 180 0 230 60 C180 120 60 120 10 60 Z" fill="none" stroke="currentColor" stroke-width="2"/>
         <circle cx="120" cy="60" r="34" fill="none" stroke="currentColor" stroke-width="1.5"/>
         <circle cx="120" cy="60" r="24" fill="none" stroke="currentColor" opacity="0.6"/>
-        <circle cx="120" cy="60" r="9" fill="currentColor"/>
+        <circle class="pupil" cx="120" cy="60" r="9" fill="currentColor"/>
         <!-- the scanning beam: cut to the eye's shape, moved by the CSS animation -->
         <g clip-path="url(#eye-shape)">
           <rect class="beam" x="0" y="58" width="240" height="4" fill="currentColor"/>
         </g>
       </svg>
-
+</a>
       <h1>
         <span class="title-main">Dangerous Visages</span>
         <span class="title-sub">Through A Scanner Darkly</span>
