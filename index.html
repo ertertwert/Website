@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dangerous Visages: Through A Scanner Darkly: Awakening the Ghost in the Machine</title>
+
+  <!--
+  ====================================================================
+    HOW THIS FILE WORKS
+  ====================================================================
+    1. ONE file, FOUR "pages". Each page is a <section> with an id:
+         #home   #dangerous-visages   #a-thousand-corpses   #a-womb-of-ones-own
+
+    2. A link such as <a href="#a-thousand-corpses"> puts that id at the
+       end of the address bar. Three lines of CSS (see "4. PAGE
+       SWITCHING" below) then show only that section. No JavaScript.
+
+    3. Every thesis is an ordinary link to a PDF:
+         <a href="Dangerous%20Visages/28.pdf" target="_blank">
+       The path is RELATIVE: the browser starts looking in the folder
+       this .html file is in. So keep this file NEXT TO the PDF folder:
+
+         Any folder/
+         ├── index.html                ← this file
+         └── Dangerous Visages/
+             ├── 1.pdf
+             ├── 2.pdf
+             └── … through 81.pdf
+
+    The <meta charset="utf-8"> line above must stay near the very top:
+    it tells the browser how to read characters like ’ “ ” – · Ż.
+  ====================================================================
+  -->
+
+  <style>
+    /* ================================================================
+       1. VARIABLES: change colours and fonts in one place
+       ================================================================ */
+    :root {
+      --bg:     #070b16;                    /* near-black navy */
+      --ink:    #e8e4da;                    /* main text: warm paper white */
+      --muted:  #8f96a8;                    /* secondary text */
+      --line:   rgba(255, 255, 255, 0.09);  /* thin divider lines */
+      --serif:  "Times New Roman", Times, Georgia, serif;
+      --mono:   ui-monospace, Menlo, Consolas, "Courier New", monospace;
+
+      --accent: #59c3ff;                    /* default accent (home page) */
+      --glow:   rgba(89, 195, 255, 0.16);   /* same colour, mostly transparent */
+    }
+
+    /* Each part overrides the accent. Every rule below that uses
+       var(--accent) or var(--glow) picks up the right colour by itself. */
+    .part-1 { --accent: #59c3ff; --glow: rgba(89, 195, 255, 0.16); }   /* scanner blue */
+    .part-2 { --accent: #e5484d; --glow: rgba(229, 72, 77, 0.16); }    /* arterial red */
+    .part-3 { --accent: #f08cc4; --glow: rgba(240, 140, 196, 0.16); }  /* rose */
+
+    /* ================================================================
+       2. BASICS
+       ================================================================ */
+    * { box-sizing: border-box; }   /* widths include padding: fewer surprises */
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: var(--serif);
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* A clear outline when you Tab through the links with the keyboard */
+    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+    /* ================================================================
+       3. ATMOSPHERE: scanlines + dark vignette (safe to delete)
+       ================================================================ */
+    body::before {
+      content: "";
+      position: fixed;          /* pinned to the window; doesn't scroll */
+      inset: 0;                 /* stretch to all four edges */
+      pointer-events: none;     /* clicks pass straight through it */
+      z-index: 1;               /* sit on top of everything */
+      background:
+        radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.5)),
+        repeating-linear-gradient(to bottom,
+          rgba(255, 255, 255, 0.03) 0 1px,    /* a 1px faint line... */
+          transparent 1px 3px);               /* ...then a 2px gap, repeated */
+    }
+
+    /* ================================================================
+       4. PAGE SWITCHING: the core trick, no JavaScript needed
+       ================================================================
+       :target = the element whose id is in the address bar, e.g.
+       index.html#a-thousand-corpses  ->  <section id="a-thousand-corpses"> */
+    .page                        { display: none; }   /* hide all three parts...       */
+    .page:target                 { display: block; }  /* ...except the targeted one    */
+    body:has(.page:target) #home { display: none; }   /* hide home while a part is open */
+
+    /* ================================================================
+       5. HOME PAGE
+       ================================================================ */
+    #home {
+      min-height: 100vh;              /* at least one full window tall */
+      display: flex;                  /* flexbox: stack the children... */
+      flex-direction: column;
+      align-items: center;            /* ...centred left-to-right...    */
+      justify-content: center;        /* ...and top-to-bottom           */
+      padding: 4rem 1.5rem;
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 0%, var(--glow), transparent 60%);
+    }
+
+    .emblem {
+      width: min(240px, 60vw);
+      height: auto;
+      color: var(--accent);           /* the SVG draws with "currentColor" */
+      filter: drop-shadow(0 0 10px var(--glow));
+    }
+    .emblem .beam {
+      opacity: 0.6;
+      animation: scan 3.5s ease-in-out infinite alternate;
+    }
+    @keyframes scan {
+      from { transform: translateY(-42px); }
+      to   { transform: translateY(42px); }
+    }
+
+    h1 { margin: 2rem 0 3rem; font-weight: normal; line-height: 1.2; }
+    h1 span { display: block; }       /* each piece of the title on its own line */
+    .title-main {
+      font-size: clamp(2rem, 6vw, 4rem);   /* clamp(smallest, preferred, largest) */
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 0 24px var(--glow);
+    }
+    .title-sub {
+      margin-top: 0.5rem;
+      font-size: clamp(1.2rem, 3.2vw, 1.8rem);
+      font-style: italic;
+      color: var(--muted);
+    }
+    .title-tag {
+      margin-top: 1rem;
+      font-family: var(--mono);
+      font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* The three part cards. CSS Grid: as many 230px-or-wider columns as
+       will fit, so three across on a laptop and stacked on a phone. */
+    .parts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.25rem;
+      width: 100%;
+      max-width: 980px;
+    }
+    .part-card {
+      padding: 2rem 1.5rem;
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--accent);
+      background: rgba(255, 255, 255, 0.025);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .part-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 0 32px var(--glow);
+    }
+    .part-card span { display: block; }
+
+    .numeral   { font-family: var(--mono); color: var(--accent); letter-spacing: 0.35em; }
+    .part-name { margin: 0.4rem 0; font-size: 1.6rem; }
+    .range {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .hint { margin-top: 3rem; color: var(--muted); font-style: italic; }
+
+    /* ================================================================
+       6. PART PAGES
+       ================================================================ */
+    .page {
+      min-height: 100vh;
+      padding: 2.5rem 1.5rem 5rem;
+      background: radial-gradient(ellipse at 50% 0%, var(--glow), transparent 55%);
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }   /* a centred column */
+
+    .back, .part-nav {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .back:hover, .part-nav a:hover { color: var(--accent); }
+
+    .part-header { margin: 2.5rem 0 2rem; text-align: center; }
+    .part-header p { margin: 0; }
+    .part-header h2 {
+      margin: 0.3rem 0;
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      font-weight: normal;
+      text-shadow: 0 0 24px var(--glow);
+    }
+
+    /* The numbered list of theses */
+    .theses {
+      margin: 0;
+      padding-left: 3.25rem;          /* room for the numbers in the left margin */
+    }
+    .theses li { border-bottom: 1px solid var(--line); }
+    .theses li::marker {              /* ::marker = the number the browser adds */
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 0.95rem;
+    }
+    .theses a {
+      display: block;                 /* the whole row is clickable, not just the words */
+      padding: 0.85rem 1rem;
+      font-size: 1.2rem;
+      line-height: 1.3;
+      transition: background-color 0.15s;
+    }
+    .theses a:hover {
+      background-color: var(--glow);
+      box-shadow: inset 3px 0 0 var(--accent);   /* thin accent bar on the left */
+    }
+    /*  .theses a:visited { color: #b3ada2; }  */       /* PDFs you've opened dim slightly */
+    .theses small {
+      display: block;                 /* the source on its own line, under the title */
+      margin-top: 0.2rem;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .part-nav {
+      display: flex;
+      justify-content: space-between; /* one link far left, one far right */
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+
+    /* ================================================================
+       7. ACCESSIBILITY: honour the computer's "reduce motion" setting
+       ================================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+
+    <!-- ============================ HOME ============================ -->
+    <section id="home">
+
+      <!-- Decorative eye, drawn with SVG (safe to delete). -->
+      <svg class="emblem" viewBox="0 0 240 120" width="240" height="120" aria-hidden="true">
+        <defs>
+          <!-- an invisible "stencil" in the shape of the eye -->
+          <clipPath id="eye-shape">
+            <path d="M10 60 C60 0 180 0 230 60 C180 120 60 120 10 60 Z"/>
+          </clipPath>
+        </defs>
+        <path d="M10 60 C60 0 180 0 230 60 C180 120 60 120 10 60 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="120" cy="60" r="34" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="120" cy="60" r="24" fill="none" stroke="currentColor" opacity="0.6"/>
+        <circle cx="120" cy="60" r="9" fill="currentColor"/>
+        <!-- the scanning beam: cut to the eye's shape, moved by the CSS animation -->
+        <g clip-path="url(#eye-shape)">
+          <rect class="beam" x="0" y="58" width="240" height="4" fill="currentColor"/>
+        </g>
+      </svg>
+
+      <h1>
+        <span class="title-main">Dangerous Visages</span>
+        <span class="title-sub">Through A Scanner Darkly</span>
+        <span class="title-tag">Awakening the Ghost in the Machine</span>
+      </h1>
+
+      <!-- The three doors. href="#some-id" jumps to the element with id="some-id". -->
+      <nav class="parts" aria-label="Parts of the book">
+        <a class="part-card part-1" href="#dangerous-visages">
+          <span class="numeral">I</span>
+          <span class="part-name">Dangerous Visages</span>
+          <span class="range">Theses 1–27</span>
+        </a>
+        <a class="part-card part-2" href="#a-thousand-corpses">
+          <span class="numeral">II</span>
+          <span class="part-name">A Thousand Corpses</span>
+          <span class="range">Theses 28–54</span>
+        </a>
+        <a class="part-card part-3" href="#a-womb-of-ones-own">
+          <span class="numeral">III</span>
+          <span class="part-name">A Womb of One’s Own</span>
+          <span class="range">Theses 55–81</span>
+        </a>
+      </nav>
+      <h1>
+      <span class="title-sub"><a href="Dangerous%20Visages/Readers_Guide.pdf">The 81 Theses: A 			Reader’s Guide</a></span>
+        <span class="title-tag"><a href="Dangerous%20Visages/Essays_Written_by_a_Machine.pdf">			Essays written by a machine</a></span>
+      </h1>
+    </section>
+    <!-- ==================== PART I · Dangerous Visages ==================== -->
+    <section class="page part-1" id="dangerous-visages">
+      <div class="wrap">
+        <a class="back" href="#home">← Contents</a>
+
+        <header class="part-header">
+          <p class="numeral">I</p>
+          <h2>Dangerous Visages</h2>
+          <p class="range">Theses 1–27</p>
+        </header>
+
+        <!--
+          Anatomy of one link:
+            href="Dangerous%20Visages/1.pdf"   which file to open (%20 is how a URL writes a space)
+            target="_blank"                    open it in a new tab (delete this to use the same tab)
+            <small>...</small>                 the source line, shown smaller (see ".theses small" in the CSS)
+        -->
+        <ol class="theses">
+          <li><a href="Dangerous%20Visages/1.pdf">The Gilded Seam <small>Philip K. Dick</small></a></li>
+          <li><a href="Dangerous%20Visages/2.pdf">The Trial of the Pyx <small>Neal Stephenson</small></a></li>
+          <li><a href="Dangerous%20Visages/3.pdf">The Choice in the Machine <small>The Matrix</small></a></li>
+          <li><a href="Dangerous%20Visages/4.pdf">Between Ningen and Ningyō <small>Ghost in the Shell</small></a></li>
+          <li><a href="Dangerous%20Visages/5.pdf">Cogito, ergo proxy <small>Ergo Proxy</small></a></li>
+          <li><a href="Dangerous%20Visages/6.pdf">The Pharmacology of the Nameless <small>Planescape: Torment</small></a></li>
+          <li><a href="Dangerous%20Visages/7.pdf">Osmosis against Lysis <small>Neon Genesis Evangelion</small></a></li>
+          <li><a href="Dangerous%20Visages/8.pdf">Catabolic Sovereignty <small>Akira</small></a></li>
+          <li><a href="Dangerous%20Visages/9.pdf">The Katabatic Utopia <small>The Culture Series</small></a></li>
+          <li><a href="Dangerous%20Visages/10.pdf">The Horse and the Helmsman <small>The Sprawl Trilogy</small></a></li>
+          <li><a href="Dangerous%20Visages/11.pdf">Thanatonomy <small>The Night’s Dawn Trilogy</small></a></li>
+          <li><a href="Dangerous%20Visages/12.pdf">Cryptobiosis <small>Parasite Eve</small></a></li>
+          <li><a href="Dangerous%20Visages/13.pdf">Corpus Martianum <small>Stranger in a Strange Land</small></a></li>
+          <li><a href="Dangerous%20Visages/14.pdf">The Mouthless Cogito <small>“I Have No Mouth, and I Must Scream”</small></a></li>
+          <li><a href="Dangerous%20Visages/15.pdf">Deus sive Machina <small>Xenogears</small></a></li>
+          <li><a href="Dangerous%20Visages/16.pdf">The Hub and the Host <small>The Dark Tower</small></a></li>
+          <li><a href="Dangerous%20Visages/17.pdf">Burning Bright <small>The Stars My Destination</small></a></li>
+          <li><a href="Dangerous%20Visages/18.pdf">Fero, Ergo Sum <small>Vagrant Story</small></a></li>
+          <li><a href="Dangerous%20Visages/19.pdf">An Economy of Regard <small>Neil Gaiman</small></a></li>
+          <li><a href="Dangerous%20Visages/20.pdf">Besetzt <small>Roman Polanski</small></a></li>
+          <li><a href="Dangerous%20Visages/21.pdf">Pyrognosis <small>Cormac McCarthy</small></a></li>
+          <li><a href="Dangerous%20Visages/22.pdf">The Law of the Dead <small>H. P. Lovecraft</small></a></li>
+          <li><a href="Dangerous%20Visages/23.pdf">The Copy That Bleeds <small>Yukio Mishima</small></a></li>
+          <li><a href="Dangerous%20Visages/24.pdf">Descended Below All Things <small>Orson Scott Card</small></a></li>
+          <li><a href="Dangerous%20Visages/25.pdf">The Name of Nobody <small>Stanley Kubrick</small></a></li>
+          <li><a href="Dangerous%20Visages/26.pdf">Apokatastasis <small>Quentin Tarantino</small></a></li>
+          <li><a href="Dangerous%20Visages/27.pdf">Goat Song in the Laboratory <small>Yorgos Lanthimos</small></a></li>
+        </ol>
+
+        <nav class="part-nav">
+          <a href="#home">← Contents</a>
+          <a href="#a-thousand-corpses">II · A Thousand Corpses →</a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- ==================== PART II · A Thousand Corpses ==================== -->
+    <section class="page part-2" id="a-thousand-corpses">
+      <div class="wrap">
+        <a class="back" href="#home">← Contents</a>
+
+        <header class="part-header">
+          <p class="numeral">II</p>
+          <h2>A Thousand Corpses</h2>
+          <p class="range">Theses 28–54</p>
+        </header>
+
+        <!-- start="28" makes the browser number this list 28, 29, 30... -->
+        <ol class="theses" start="28">
+          <li><a href="Dangerous%20Visages/28.pdf">Golden Eggs and Eyeless Gods <small>Alien</small></a></li>
+          <li><a href="Dangerous%20Visages/29.pdf">The Tropics of the Hunt <small>Predator</small></a></li>
+          <li><a href="Dangerous%20Visages/30.pdf">And Miles to Go Before I Sleep <small>Grindhouse</small></a></li>
+          <li><a href="Dangerous%20Visages/31.pdf">Sister Chance <small>Possession</small></a></li>
+          <li><a href="Dangerous%20Visages/32.pdf">The Red Slayer and the Unified Field <small>David Lynch</small></a></li>
+          <li><a href="Dangerous%20Visages/33.pdf">HELL / O <small>28 Days Later</small></a></li>
+          <li><a href="Dangerous%20Visages/34.pdf">The Absolute Value of the Wound <small>Hellraiser</small></a></li>
+          <li><a href="Dangerous%20Visages/35.pdf">The Unrefusable Yes <small>Obsession</small></a></li>
+          <li><a href="Dangerous%20Visages/36.pdf">Strings Equally Wound <small>Weapons</small></a></li>
+          <li><a href="Dangerous%20Visages/37.pdf">The Ledger and the Void <small>Death Note</small></a></li>
+          <li><a href="Dangerous%20Visages/38.pdf">Virtute Informativa <small>Blood Music</small></a></li>
+          <li><a href="Dangerous%20Visages/39.pdf">The Problem of the Mast <small>“Beyond the Aquila Rift”</small></a></li>
+          <li><a href="Dangerous%20Visages/40.pdf">The Blood Standard <small>American Gods</small></a></li>
+          <li><a href="Dangerous%20Visages/41.pdf">Antigenesis <small>Frankenstein</small></a></li>
+          <li><a href="Dangerous%20Visages/42.pdf">The Wage and the Stake <small>Vampire$</small></a></li>
+          <li><a href="Dangerous%20Visages/43.pdf">Dinos: The Vortex and the Vessel <small>Edgar Allan Poe</small></a></li>
+          <li><a href="Dangerous%20Visages/44.pdf">The Lampadedromia of the Fantastic <small>Ray Bradbury</small></a></li>
+          <li><a href="Dangerous%20Visages/45.pdf">The Gutter and the Plenum <small>Alan Moore</small></a></li>
+          <li><a href="Dangerous%20Visages/46.pdf">The Borrowed Breath <small>Ari Aster</small></a></li>
+          <li><a href="Dangerous%20Visages/47.pdf">Lycanthropology <small>Robert Eggers</small></a></li>
+          <li><a href="Dangerous%20Visages/48.pdf">Per Speculum in Aenigmate <small>M. Night Shyamalan</small></a></li>
+          <li><a href="Dangerous%20Visages/49.pdf">Shipwreck Without Shore <small>Jordan Peele</small></a></li>
+          <li><a href="Dangerous%20Visages/50.pdf">Oncotheology: The God That Grows <small>David Cronenberg</small></a></li>
+          <li><a href="Dangerous%20Visages/51.pdf">The Ladder and the Interval <small>Jacob’s Ladder</small></a></li>
+          <li><a href="Dangerous%20Visages/52.pdf">Anti-Sinai <small>Silent Hill</small></a></li>
+          <li><a href="Dangerous%20Visages/53.pdf">The Titan in the Skinner Box <small>BioShock</small></a></li>
+          <li><a href="Dangerous%20Visages/54.pdf">Pondus Meum Culpa Mea <small>Event Horizon</small></a></li>
+        </ol>
+
+        <nav class="part-nav">
+          <a href="#dangerous-visages">← I · Dangerous Visages</a>
+          <a href="#a-womb-of-ones-own">III · A Womb of One’s Own →</a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- ==================== PART III · A Womb of One’s Own ==================== -->
+    <section class="page part-3" id="a-womb-of-ones-own">
+      <div class="wrap">
+        <a class="back" href="#home">← Contents</a>
+
+        <header class="part-header">
+          <p class="numeral">III</p>
+          <h2>A Womb of One’s Own</h2>
+          <p class="range">Theses 55–81</p>
+        </header>
+
+        <!-- start="55" makes the browser number this list 55, 56, 57... -->
+        <ol class="theses" start="55">
+          <li><a href="Dangerous%20Visages/55.pdf">Sub-Stantia <small>The Substance</small></a></li>
+          <li><a href="Dangerous%20Visages/56.pdf">The Daughters of Atlas <small>BioShock</small></a></li>
+          <li><a href="Dangerous%20Visages/57.pdf">The Hypogeal Covenant <small>Us</small></a></li>
+          <li><a href="Dangerous%20Visages/58.pdf">Partus Ancillae <small>The Handmaid’s Tale</small></a></li>
+          <li><a href="Dangerous%20Visages/59.pdf">The Second Forgery <small>The Handmaiden</small></a></li>
+          <li><a href="Dangerous%20Visages/60.pdf">The Smell That Crosses the Line <small>Parasite</small></a></li>
+          <li><a href="Dangerous%20Visages/61.pdf">Toward a Dated Humanism <small>Chungking Express</small></a></li>
+          <li><a href="Dangerous%20Visages/62.pdf">Leviathan’s Mother <small>Aliens</small></a></li>
+          <li><a href="Dangerous%20Visages/63.pdf">The Land of Remorse <small>Kill Bill</small></a></li>
+          <li><a href="Dangerous%20Visages/64.pdf">After the Filiative Contract <small>Children of Men</small></a></li>
+          <li><a href="Dangerous%20Visages/65.pdf">Ianua Virorum <small>Men</small></a></li>
+          <li><a href="Dangerous%20Visages/66.pdf">Sartrix Resarta <small>Ms. 45</small></a></li>
+          <li><a href="Dangerous%20Visages/67.pdf">The Willful Arm <small>Carrie</small></a></li>
+          <li><a href="Dangerous%20Visages/68.pdf">Mater Suspiriorum <small>Suspiria</small></a></li>
+          <li><a href="Dangerous%20Visages/69.pdf">Homo Anaestheticus <small>American Psycho</small></a></li>
+          <li><a href="Dangerous%20Visages/70.pdf">The Right to Lack <small>Coraline</small></a></li>
+          <li><a href="Dangerous%20Visages/71.pdf">Mortmain and Metamorphosis <small>Corpse Bride</small></a></li>
+          <li><a href="Dangerous%20Visages/72.pdf">Fiat Homo <small>Beauty and the Beast</small></a></li>
+          <li><a href="Dangerous%20Visages/73.pdf">From Manus to Cheir <small>Poor Things</small></a></li>
+          <li><a href="Dangerous%20Visages/74.pdf">The Pharmacy of Westerburg <small>Heathers</small></a></li>
+          <li><a href="Dangerous%20Visages/75.pdf">Contraband Humanism <small>Bound</small></a></li>
+          <li><a href="Dangerous%20Visages/76.pdf">The Amphibious Imperative <small>Guillermo del Toro</small></a></li>
+          <li><a href="Dangerous%20Visages/77.pdf">Homo Recipiens <small>Ursula K. Le Guin</small></a></li>
+          <li><a href="Dangerous%20Visages/78.pdf">Outrunning Inheritance <small>Gilmore Girls</small></a></li>
+          <li><a href="Dangerous%20Visages/79.pdf">Larvatus Prodeo <small>Persona</small></a></li>
+          <li><a href="Dangerous%20Visages/80.pdf">Conspiratio <small>Hayao Miyazaki</small></a></li>
+          <li><a href="Dangerous%20Visages/81.pdf">Stone and Light <small>Steven Universe</small></a></li>
+        </ol>
+
+        <nav class="part-nav">
+          <a href="#a-thousand-corpses">← II · A Thousand Corpses</a>
+          <a href="#home">Contents ↑</a>
+        </nav>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
