@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dangerous Visages: Through A Scanner Darkly: Awakening the Ghost in the Machine</title>
+
+  <!--
+  ====================================================================
+    HOW THIS FILE WORKS
+  ====================================================================
+    1. ONE file, FOUR "pages". Each page is a <section> with an id:
+         #home   #dangerous-visages   #a-thousand-corpses   #a-womb-of-ones-own
+
+    2. A link such as <a href="#a-thousand-corpses"> puts that id at the
+       end of the address bar. Three lines of CSS (see "4. PAGE
+       SWITCHING" below) then show only that section. No JavaScript.
+
+    3. Every thesis is an ordinary link to a PDF:
+         <a href="Dangerous%20Visages/28.pdf" target="_blank">
+       The path is RELATIVE: the browser starts looking in the folder
+       this .html file is in. So keep this file NEXT TO the PDF folder:
+
+         Any folder/
+         ├── index.html                ← this file
+         └── Dangerous Visages/
+             ├── 1.pdf
+             ├── 2.pdf
+             └── … through 81.pdf
+
+    The <meta charset="utf-8"> line above must stay near the very top:
+    it tells the browser how to read characters like ’ “ ” – · Ż.
+  ====================================================================
+  -->
+
+  <style>
+    /* ================================================================
+       1. VARIABLES: change colours and fonts in one place
+       ================================================================ */
+    :root {
+      --bg:      #000000;                /* vibrant orange #ff6600; near-black navy #070b16; */
+      --ink:    #e8e4da;                    /* main text: warm paper white */
+      --muted:  #8f96a8;                    /* secondary text */
+      --line:   rgba(255, 255, 255, 0.09);  /* thin divider lines */
+      --serif:  "Times New Roman", Times, Georgia, serif;
+      --mono:   ui-monospace, Menlo, Consolas, "Courier New", monospace;
+
+      --accent: #59c3ff;                    /* default accent (home page) */
+      --glow:   rgba(89, 195, 255, 0.16);   /* same colour, mostly transparent */
+    }
+
+    /* Each part overrides the accent. Every rule below that uses
+       var(--accent) or var(--glow) picks up the right colour by itself. */
+    .part-1 { --accent: #59c3ff; --glow: rgba(89, 195, 255, 0.16); }   /* scanner blue */
+    .part-2 { --accent: #e5484d; --glow: rgba(229, 72, 77, 0.16); }    /* arterial red */
+    .part-3 { --accent: #f08cc4; --glow: rgba(240, 140, 196, 0.16); }  /* rose */
+
+    /* ================================================================
+       2. BASICS
+       ================================================================ */
+    * { box-sizing: border-box; }   /* widths include padding: fewer surprises */
+
+    body {
+      margin: 0;
+      background-color: var(--bg);
+      color: var(--ink);
+      font-family: var(--serif);
+      line-height: 1.5;
+    }
+
+    a { color: inherit; text-decoration: none; }
+
+    /* A clear outline when you Tab through the links with the keyboard */
+    a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+
+    /* ================================================================
+       3. ATMOSPHERE: scanlines + dark vignette (safe to delete)
+       ================================================================ */
+    body::before {
+      content: "";
+      position: fixed;          /* pinned to the window; doesn't scroll */
+      inset: 0;                 /* stretch to all four edges */
+      pointer-events: none;     /* clicks pass straight through it */
+      z-index: 1;               /* sit on top of everything */
+      background:
+        radial-gradient(ellipse at center, transparent 60%, rgba(0, 0, 0, 0.5)),
+        repeating-linear-gradient(to bottom,
+          rgba(255, 255, 255, 0.03) 0 1px,    /* a 1px faint line... */
+          transparent 1px 3px);               /* ...then a 2px gap, repeated */
+    }
+
+    /* ================================================================
+       4. PAGE SWITCHING: the core trick, no JavaScript needed
+       ================================================================
+       :target = the element whose id is in the address bar, e.g.
+       index.html#a-thousand-corpses  ->  <section id="a-thousand-corpses"> */
+    .page                        { display: none; }   /* hide all three parts...       */
+    .page:target                 { display: block; }  /* ...except the targeted one    */
+    body:has(.page:target) #home { display: none; }   /* hide home while a part is open */
+    .emblem .pupil {
+      transform-box: fill-box;    /* measure from the circle itself... */
+      transform-origin: center;   /* ...and grow from its middle */
+      transition: transform 0.4s;
+     }
+      .emblem-link:hover .pupil {   /* the pupil inside the link, while the link is hovered */
+        transform: scale(1.7);
+     }
+      .custom-link {
+        color: #59c3ff;  /* Dark gray */
+     }
+
+      .custom-link:hover {
+        color: #8f96a8;  /* Vibrant orange #ff6600;  */
+     }
+
+    /* ================================================================
+       5. HOME PAGE
+       ================================================================ */
+    #home {
+      min-height: 100vh;              /* at least one full window tall */
+      display: flex;                  /* flexbox: stack the children... */
+      flex-direction: column;
+      align-items: center;            /* ...centred left-to-right...    */
+      justify-content: center;        /* ...and top-to-bottom           */
+      padding: 4rem 1.5rem;
+      text-align: center;
+      background: radial-gradient(ellipse at 50% 0%, var(--glow), transparent 60%);
+    }
+
+    .emblem {
+      display: block;
+      width: min(240px, 60vw);
+      height: auto;
+      color: var(--accent);           /* the SVG draws with "currentColor" */
+      filter: drop-shadow(0 0 10px var(--glow));
+    }
+    .emblem .beam {
+      opacity: 0.6;
+      animation: scan 3.5s ease-in-out infinite alternate;
+    }
+    @keyframes scan {
+      from { transform: translateY(-42px); }
+      to   { transform: translateY(42px); }
+    }
+
+    h1 { margin: 2rem 0 3rem; font-weight: normal; line-height: 1.2; }
+    h1 span { display: block; }       /* each piece of the title on its own line */
+    .title-main {
+      font-size: clamp(2rem, 6vw, 4rem);   /* clamp(smallest, preferred, largest) */
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 0 24px var(--glow);
+    }
+    .title-sub {
+      margin-top: 0.5rem;
+      font-size: clamp(1.2rem, 3.2vw, 1.8rem);
+      font-style: italic;
+      color: var(--muted);
+    }
+    .title-tag {
+      margin-top: 1rem;
+      font-family: var(--mono);
+      font-size: clamp(0.7rem, 1.8vw, 0.9rem);
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--accent);
+    }
+
+    /* The three part cards. CSS Grid: as many 230px-or-wider columns as
+       will fit, so three across on a laptop and stacked on a phone. */
+    .parts {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+      gap: 1.25rem;
+      width: 100%;
+      max-width: 980px;
+    }
+    .part-card {
+      padding: 2rem 1.5rem;
+      border: 1px solid var(--line);
+      border-top: 3px solid var(--accent);
+      background: rgba(255, 255, 255, 0.025);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+    }
+    .part-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--accent);
+      box-shadow: 0 0 32px var(--glow);
+    }
+    .part-card span { display: block; }
+
+    .numeral   { font-family: var(--mono); color: var(--accent); letter-spacing: 0.35em; }
+    .part-name { margin: 0.4rem 0; font-size: 1.6rem; }
+    .range {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .hint { margin-top: 3rem; color: var(--muted); font-style: italic; }
+
+    /* ================================================================
+       6. PART PAGES
+       ================================================================ */
+    .page {
+      min-height: 100vh;
+      padding: 2.5rem 1.5rem 5rem;
+      background: radial-gradient(ellipse at 50% 0%, var(--glow), transparent 55%);
+    }
+    .wrap { max-width: 760px; margin: 0 auto; }   /* a centred column */
+
+    .back, .part-nav {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .back:hover, .part-nav a:hover { color: var(--accent); }
+
+    .part-header { margin: 2.5rem 0 2rem; text-align: center; }
+    .part-header p { margin: 0; }
+    .part-header h2 {
+      margin: 0.3rem 0;
+      font-size: clamp(2rem, 6vw, 3.25rem);
+      font-weight: normal;
+      text-shadow: 0 0 24px var(--glow);
+    }
+
+    /* The numbered list of theses */
+    .theses {
+      margin: 0;
+      padding-left: 3.25rem;          /* room for the numbers in the left margin */
+    }
+    .theses li { border-bottom: 1px solid var(--line); }
+    .theses li::marker {              /* ::marker = the number the browser adds */
+      color: var(--accent);
+      font-family: var(--mono);
+      font-size: 0.95rem;
+    }
+    .theses a {
+      display: block;                 /* the whole row is clickable, not just the words */
+      padding: 0.85rem 1rem;
+      font-size: 1.2rem;
+      line-height: 1.3;
+      transition: background-color 0.15s;
+    }
+    .theses a:hover {
+      background-color: var(--glow);
+      box-shadow: inset 3px 0 0 var(--accent);   /* thin accent bar on the left */
+    }
+    /*  .theses a:visited { color: #b3ada2; }  */       /* PDFs you've opened dim slightly */
+    .theses small {
+      display: block;                 /* the source on its own line, under the title */
+      margin-top: 0.2rem;
+      font-size: 0.95rem;
+      font-style: italic;
+      color: var(--muted);
+    }
+
+    .part-nav {
+      display: flex;
+      justify-content: space-between; /* one link far left, one far right */
+      gap: 1rem;
+      margin-top: 2.5rem;
+    }
+
+    /* ================================================================
+       7. ACCESSIBILITY: honour the computer's "reduce motion" setting
+       ================================================================ */
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+
+    <!-- ============================ HOME ============================ -->
+    <section id="home">
+
+      <!-- Decorative eye, drawn with SVG (safe to delete). -->
+    <a class="emblem-link" href="index.html">
+      <svg class="emblem" viewBox="0 0 240 120" width="240" height="120" aria-hidden="true">
+        <defs>
+          <!-- an invisible "stencil" in the shape of the eye -->
+          <clipPath id="eye-shape">
+            <path d="M10 60 C60 0 180 0 230 60 C180 120 60 120 10 60 Z"/>
+          </clipPath>
+        </defs>
+        <path d="M10 60 C60 0 180 0 230 60 C180 120 60 120 10 60 Z" fill="none" stroke="currentColor" stroke-width="2"/>
+        <circle cx="120" cy="60" r="34" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="120" cy="60" r="24" fill="none" stroke="currentColor" opacity="0.6"/>
+        <circle class="pupil" cx="120" cy="60" r="9" fill="currentColor"/>
+        <!-- the scanning beam: cut to the eye's shape, moved by the CSS animation -->
+        <g clip-path="url(#eye-shape)">
+          <rect class="beam" x="0" y="58" width="240" height="4" fill="currentColor"/>
+        </g>
+      </svg>
+    </a>
+      <h1>
+        <span class="title-main">Essential Classics</span>
+        <span class="title-sub">Written by Claude Opus 5.5</span>
+        <span class="title-tag">Assembled by Andrew Van Blair</span>
+      </h1>
+
+      <!-- The three doors. href="#some-id" jumps to the element with id="some-id". -->
+      <nav class="parts" aria-label="Parts of the book">
+        <a class="part-card part-1" href="#books">
+          <span class="numeral">I</span>
+          <span class="part-name">Books</span>
+          <span class="range">The Written Word</span>
+        </a>
+        <a class="part-card part-2" href="#movies">
+          <span class="numeral">II</span>
+          <span class="part-name">Movies</span>
+          <span class="range">The Moving Image</span>
+        </a>
+        <a class="part-card part-3" href="#games">
+          <span class="numeral">III</span>
+          <span class="part-name">Games</span>
+          <span class="range">The Interactive Art</span>
+        </a>
+      </nav>
+     <h1>
+      <span class="title-sub"><a href="Inverse/Prologue.pdf" class="custom-link">The Book She'll Never Read</a></span>
+        <span class="title-tag"><a href="Inverse/Pandora.pdf" class="custom-link">The Modern Pandora</a></span>
+      </h1>
+    </section>
+    <!-- ==================== PART I · Books ==================== -->
+    <section class="page part-1" id="books">
+      <div class="wrap">
+        <a class="back" href="#home">← Contents</a>
+
+        <header class="part-header">
+          <p class="numeral">I</p>
+          <h2>Books</h2>
+          <p class="range">The Written Word</p>
+        </header>
+
+        <!--
+          Anatomy of one link:
+            href="Dangerous%20Visages/1.pdf"   which file to open (%20 is how a URL writes a space)
+            target="_blank"                    open it in a new tab (delete this to use the same tab)
+            <small>...</small>                 the source line, shown smaller (see ".theses small" in the CSS)
+        -->
+        <ol class="theses">
+          <li><a href="Inverse/AllYouZombies.pdf">The Zombie Who Begot Himself<small>All You Zombies</small></a></li>
+          <li><a href="Inverse/Anathem.pdf">Low-Pass Platonism<small>Anathem</small></a></li>
+          <li><a href="Inverse/Armor.pdf">Ecdysis<small>Armor</small></a></li>
+          <li><a href="Inverse/AScannerDarkly.pdf">Nobody's Thanksgiving<small>A Scanner Darkly</small></a></li>
+          <li><a href="Inverse/ConsiderPhlebas.pdf">Consideratio<small>Consider Phlebas</small></a></li>
+          <li><a href="Inverse/DemolishedMan.pdf">Effacement<small>The Demolished Man</small></a></li>
+          <li><a href="Inverse/DiamondAge.pdf">The Second Paradox of Value<small>The Diamond Age</small></a></li>
+          <li><a href="Inverse/ElectricSheep.pdf">Aidos Ex Machina<small>Do Andoirds Dream of Electric Sheep?</small></a></li>
+          <li><a href="Inverse/DrBloodmoney.pdf">Orbital Eschatology<small>Dr. Bloodmoney, or How We Got Along After The Bomb</small></a></li>
+          <li><a href="Inverse/Dune.pdf">Thinking Like A Desert<small>Dune</small></a></li>
+          <li><a href="Inverse/EndersGame.pdf">The Engineered Innocent<small>Ender's Game</small></a></li>
+          <li><a href="Inverse/FlowMyTears.pdf">Lachrimae Verae<small>Flow My Tears, the Policeman Said</small></a></li>
+          <li><a href="Inverse/Foundation.pdf">The Automaton and the Dwarf<small>The Foundation</small></a></li>
+          <li><a href="Inverse/HarlanEllison.pdf">No Mouth, No Standing<small>Harlan Ellison</small></a></li>
+          <li><a href="Inverse/ManinCastle.pdf">Wind over Lake<small>The Man in the High Castle</small></a></li>
+          <li><a href="Inverse/Neverwhere.pdf">Minding The Gap<small>Neverwhere</small></a></li>
+          <li><a href="Inverse/Neuromancer.pdf">Necromantic Capital<small>Neuromancer</small></a></li>
+          <li><a href="Inverse/Odyssey.pdf">The Planted Oar<small>The Odyssey</small></a></li>
+          <li><a href="Inverse/PlayerofGames.pdf">Deep Play at the End of History<small>The Player of Games</small></a></li>
+          <li><a href="Inverse/Road.pdf">Pyrophoria<small>The Road</small></a></li>
+          <li><a href="Inverse/Sandman.pdf">The King's Two Dreams<small>The Sandman</small></a></li>
+          <li><a href="Inverse/SnowCrash.pdf">The Air Gap at Babel<small>Snow Crash</small></a></li>
+          <li><a href="Inverse/Stand.pdf">Who Shall Be Able to Stand?<small>The Stand</small></a></li>
+          <li><a href="Inverse/UseofWeapons.pdf">The Chairmaker’s Theorem<small>The Use of Weapons</small></a></li>
+        </ol>
+
+        <nav class="part-nav">
+          <a href="#home">← Contents</a>
+          <a href="#movies">II · Movies →</a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- ==================== PART II · Movies ==================== -->
+    <section class="page part-2" id="movies">
+      <div class="wrap">
+        <a class="back" href="#home">← Contents</a>
+
+        <header class="part-header">
+          <p class="numeral">II</p>
+          <h2>Movies</h2>
+          <p class="range">The Moving Image</p>
+        </header>
+
+        <!-- start="28" makes the browser number this list 28, 29, 30... -->
+        <ol class="theses" start="1">
+          <li><a href="Inverse/BlackMirror.pdf">Render unto Chance<small>Black Mirror</small></a></li>
+          <li><a href="Inverse/CoenBrothers.pdf">Render unto Chance<small>Coen Brothers</small></a></li>
+          <li><a href="Inverse/CowboyBebop.pdf">Mugen Swing<small>Cowboy Bebop</small></a></li>
+          <li><a href="Inverse/DavidFincher.pdf">The Archontic Image<small>David Fincher</small></a></li>
+          <li><a href="Inverse/Devs.pdf">Pandaemonium<small>Devs</small></a></li>
+          <li><a href="Inverse/Eli.pdf">Aphotic Revelation<small>The Book of Eli</small></a></li>
+          <li><a href="Inverse/EvilDead.pdf">Dead by Dawn<small>The Evil Dead</small></a></li>
+          <li><a href="Inverse/FifthElement.pdf">The Quintessence of the Between <small>The Fifth Element</small></a></li>
+          <li><a href="Inverse/FightClub.pdf">Saponification<small>Fight Club</small></a></li>
+          <li><a href="Inverse/Firefly.pdf">The Serenity of the Remainder<small>Firefly</small></a></li>
+          <li><a href="Inverse/Lost.pdf">The God of Jacob, Not of the Philosophers<small>Lost</small></a></li>
+          <li><a href="Inverse/LoveDeathRobots.pdf">The Anthropic Valley<small>Love, Death &amp; Robots</small></a></li>
+          <li><a href="Inverse/Memento.pdf">The Sovereign of the Lethe<small>Memento</small></a></li>
+          <li><a href="Inverse/RickandMorty.pdf">The Demiurge in Mourning<small>Rick and Morty</small></a></li>
+          <li><a href="Inverse/Severance.pdf">The Lethean Mode of Production<small>Severance</small></a></li>
+          <li><a href="Inverse/StarWars.pdf">The Autoimmune Galaxy<small>Star Wars</small></a></li>
+          <li><a href="Inverse/Suspiria.pdf">Suspirium<small>Suspiria</small></a></li>
+          <li><a href="Inverse/Terminator.pdf">Terminus Cedit<small>The Terminator</small></a></li>
+          <li><a href="Inverse/TOOL.pdf">From Opiate to Inoculum<small>TOOL</small></a></li>
+          <li><a href="Inverse/TwinPeaks.pdf">The Inedible Scream<small>Twin Peaks</small></a></li>
+          <li><a href="Inverse/VanillaSky.pdf">The Idiocosm and the Face<small>Vanilla Sky</small></a></li>
+        </ol>
+
+        <nav class="part-nav">
+          <a href="#books">← I · Books</a>
+          <a href="#games">III · Games →</a>
+        </nav>
+      </div>
+    </section>
+
+    <!-- ==================== PART III · Games ==================== -->
+    <section class="page part-3" id="games">
+      <div class="wrap">
+        <a class="back" href="#home">← Contents</a>
+
+        <header class="part-header">
+          <p class="numeral">III</p>
+          <h2>Games</h2>
+          <p class="range">The Interactive Art</p>
+        </header>
+
+        <!-- start="55" makes the browser number this list 55, 56, 57... -->
+        <ol class="theses" start="1">
+          <li><a href="Inverse/BioShock.pdf">Catabaptism<small>BioShock Infinite</small></a></li>
+          <li><a href="Inverse/ChronoTrigger.pdf">The Big Fire and the Time Egg<small>Chrono Trigger</small></a></li>
+          <li><a href="Inverse/Cyberpunk.pdf">Post-Humus<small>Cyberpunk 2077</small></a></li>
+          <li><a href="Inverse/DarkSouls.pdf">Kindled in Measures, Quenched in Measures<small>Dark Souls</small></a></li>
+          <li><a href="Inverse/DeusEx.pdf">Lux ex Machina<small>Deus Ex</small></a></li>
+          <li><a href="Inverse/Disco.pdf">The Whirling-in-Rags<small>Disco Elysium</small></a></li>
+          <li><a href="Inverse/Fallout.pdf">Felix Contaminatio<small>Fallout 1 &amp; 2</small></a></li>
+          <li><a href="Inverse/Fear.pdf">Alma/Arma<small>F.E.A.R.</small></a></li>
+          <li><a href="Inverse/FinalFantasy.pdf">The Communion of the Unsent<small>Final Fantasy</small></a></li>
+          <li><a href="Inverse/FinalFantasyTactics.pdf">Of Blood and Crystal<small>Final Fantasy Tactics</small></a></li>
+          <li><a href="Inverse/FinalFantasyVII.pdf">The Weight of the Dead<small>Final Fantasy VII</small></a></li>
+          <li><a href="Inverse/FinalFantasyVIII.pdf">Against Compression<small>Final Fantasy VIII</small></a></li>
+          <li><a href="Inverse/Galerians.pdf">Pandora's Pharmacy<small>Galerians</small></a></li>
+          <li><a href="Inverse/HalfLife.pdf">The Sign of Lambda<small>Half-Life</small></a></li>
+          <li><a href="Inverse/HalfLife2.pdf">The Decay Constant<small>Half-Life 2</small></a></li>
+          <li><a href="Inverse/HideoKojima.pdf">Mutually Assured Delivery<small>Hideo Kojima</small></a></li>
+          <li><a href="Inverse/Kotor.pdf">The Lethean Republic<small>Knights of the Old Republic</small></a></li>
+          <li><a href="Inverse/MassEffect.pdf">Governing Beyond the Grave<small>Mass Effect</small></a></li>
+          <li><a href="Inverse/MetalGearSolid.pdf">Ichnopolitics<small>Metal Gear Solid</small></a></li>
+          <li><a href="Inverse/Prey.pdf">The Ephemeral Fruit<small>Prey</small></a></li>
+          <li><a href="Inverse/RCU.pdf">The Wake of the Lake<small>Remedy Connected Universe</small></a></li>
+          <li><a href="Inverse/Stalker.pdf">The Ballistics of Abandonment<small>S.T.A.L.K.E.R.</small></a></li>
+          <li><a href="Inverse/SystemShock2.pdf">The Custodian of the Interval<small>System Shock 2</small></a></li>
+          <li><a href="Inverse/Valve.pdf">The Governor and the Free Man<small>Valve Corporation</small></a></li>
+        </ol>
+
+        <nav class="part-nav">
+          <a href="#movies">← II · Movies</a>
+          <a href="#home">Contents ↑</a>
+        </nav>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>
