@@ -308,12 +308,12 @@
 
       <!-- The three doors. href="#some-id" jumps to the element with id="some-id". -->
       <nav class="parts" aria-label="Parts of the book">
-        <a class="part-card part-1" href="#psyber.side">
+        <a class="part-card part-1" href="#psyber-side">
           <span class="numeral">I</span>
           <span class="part-name">PSYBER.side</span>
           <span class="range">2016</span>
         </a>
-        <a class="part-card part-2" href="#psyber.cide">
+        <a class="part-card part-2" href="#psyber-cide">
           <span class="numeral">II</span>
           <span class="part-name">PSYBER.cide</span>
           <span class="range">2024</span>
@@ -330,7 +330,7 @@
       </h1>
     </section>
     <!-- ==================== PART I · Books ==================== -->
-    <section class="page part-1" id="psyber.side">
+    <section class="page part-1" id="psyber-side">
       <div class="wrap">
         <a class="back" href="#home">← Contents</a>
 
@@ -339,7 +339,7 @@
           <h2>PSYBER.side</h2>
           <p class="range">2016</p>
         </header>
-<center><iframe style="border: 0; width: 350px; height: 350px;" src="https://bandcamp.com/EmbeddedPlayer/album=1692516191/size=large/bgcol=333333/linkcol=0f91ff/minimal=true/transparent=true/" seamless><a href="https://psybercide.bandcamp.com/album/psyber-side">PSYBER.side by PSYBER.cide</a></iframe></center>
+<center><iframe style="border: 0; width: 350px; height: 350px;" data-src="https://bandcamp.com/EmbeddedPlayer/album=1692516191/size=large/bgcol=333333/linkcol=0f91ff/minimal=true/transparent=true/" seamless><a href="https://psybercide.bandcamp.com/album/psyber-side">PSYBER.side by PSYBER.cide</a></iframe></center>
         <!--
           Anatomy of one link:
             href="Dangerous%20Visages/1.pdf"   which file to open (%20 is how a URL writes a space)
@@ -355,13 +355,13 @@
 
         <nav class="part-nav">
           <a href="#home">← Contents</a>
-          <a href="#psyber.cide">II · PSYBER.cide →</a>
+          <a href="#psyber-cide">II · PSYBER.cide →</a>
         </nav>
       </div>
     </section>
 
     <!-- ==================== PART II · Movies ==================== -->
-    <section class="page part-2" id="psyber.cide">
+    <section class="page part-2" id="psyber-cide">
       <div class="wrap">
         <a class="back" href="#home">← Contents</a>
 
@@ -371,7 +371,7 @@
           <p class="range">2024</p>
         </header>
 
-<center><iframe style="border: 0; width: 350px; height: 350px;" src="https://bandcamp.com/EmbeddedPlayer/album=2775650391/size=large/bgcol=333333/linkcol=0f91ff/minimal=true/transparent=true/" seamless><a href="https://psybercide.bandcamp.com/album/psyber-cide-2">PSYBER.cide by PSYBER.cide</a></iframe></center>
+<center><iframe style="border: 0; width: 350px; height: 350px;" data-src="https://bandcamp.com/EmbeddedPlayer/album=2775650391/size=large/bgcol=333333/linkcol=0f91ff/minimal=true/transparent=true/" seamless><a href="https://psybercide.bandcamp.com/album/psyber-cide-2">PSYBER.cide by PSYBER.cide</a></iframe></center>
 
         <!-- start="28" makes the browser number this list 28, 29, 30... -->
         <ol class="theses" start="1">
@@ -383,7 +383,7 @@
         </ol>
 
         <nav class="part-nav">
-          <a href="#psyber.side">← I · PSYBER.side</a>
+          <a href="#psyber-side">← I · PSYBER.side</a>
           <a href="#biscuit">III · Biscuit Kitty →</a>
         </nav>
       </div>
@@ -399,7 +399,7 @@
           <h2>Biscuit Kitty</h2>
           <p class="range">2026</p>
         </header>
-<center><iframe style="border: 0; width: 350px; height: 350px;" src="https://bandcamp.com/EmbeddedPlayer/album=2767896529/size=large/bgcol=333333/linkcol=0f91ff/minimal=true/transparent=true/" seamless><a href="https://psybercide.bandcamp.com/album/ride-out-the-storm">Ride Out The Storm by Biscuit Kitty</a></iframe></center>
+<center><iframe style="border: 0; width: 350px; height: 350px;" data-src="https://bandcamp.com/EmbeddedPlayer/album=2767896529/size=large/bgcol=333333/linkcol=0f91ff/minimal=true/transparent=true/" seamless><a href="https://psybercide.bandcamp.com/album/ride-out-the-storm">Ride Out The Storm by Biscuit Kitty</a></iframe></center>
         <!-- start="55" makes the browser number this list 55, 56, 57... -->
         <ol class="theses" start="1">
           <li><a href="https://psybercide.bandcamp.com/track/gasoline">Gasoline<small>Biscuit Kitty</small></a></li>
@@ -414,12 +414,29 @@
         </ol>
 
         <nav class="part-nav">
-          <a href="#psyber.cide">← II · PSYBER.cide</a>
+          <a href="#psyber-cide">← II · PSYBER.cide</a>
           <a href="#home">Contents ↑</a>
         </nav>
       </div>
     </section>
 
   </main>
+  <script>
+    // Load each Bandcamp player the first time it actually appears on screen.
+    const watcher = new IntersectionObserver(function (entries) {
+      for (const entry of entries) {
+        if (entry.isIntersecting) {          // this player just became visible
+          const player = entry.target;
+          player.src = player.dataset.src;   // copy data-src into src: it loads now, at full size
+          watcher.unobserve(player);         // stop watching, so it only loads once
+        }
+      }
+    });
+
+    // Find every iframe that has a data-src, and start watching it.
+    for (const player of document.querySelectorAll("iframe[data-src]")) {
+      watcher.observe(player);
+    }
+  </script>
 </body>
 </html>
