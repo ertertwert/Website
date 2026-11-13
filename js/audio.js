@@ -49,7 +49,7 @@ const Music = {
         probe.preload = 'metadata';                           // only peek at the start of the file
         probe.onloadedmetadata = () => check(n + 1);          // it exists: look for the next one
         probe.onerror = () => done(n - 1);                    // missing: we have counted them all
-        probe.src = `${this.folder}${place}${n}.wav`;
+        probe.src = `${this.folder}${place}${n}.mp3`;
       };
       check(1);
     });
@@ -121,7 +121,7 @@ const Music = {
     this.lastPlayed[place] = place === 'Title' ? source + n : n;
     this.source = source;
 
-    const file = `${this.folder}${source}${n}.wav`;
+    const file = `${this.folder}${source}${n}.mp3`;
     let audio = this.loaded[file];
     if (!audio) {
       audio = this.loaded[file] = new Audio(file);
