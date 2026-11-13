@@ -341,6 +341,7 @@ function travel(exit) {
 const visibleNpcs = map => map.npcs.filter(n => !(n.hidden && n.hidden()));
 
 function openChest(map, x, y) {
+  if (map.mimic === x + ',' + y) return mimicFight(map, x, y);    // Endless Tower: this chest bites (see tower.js)
   let loot = [].concat(map.chests[x + ',' + y]);                  // one thing, or a list of things
   const rich = richChests(map);                                   // New Game+: better treasure (see chestLoot in data.js)
   if (rich) loot = loot.map(chestLoot);
@@ -559,7 +560,18 @@ function gearPickMenu(h, kind) {
 }
 
 const BULK_BUY = 10;                  // how many Shift/Ctrl + click buys
-const MAX_ITEMS = 99;                 // the most you can carry of any one item
+const MAX_ITEMS = 10;                 // the most you can carry of any one item
+// If the party carries more of an item than MAX_ITEMS allows (because the limit was lowered after
+// the game was saved), the extra ones are thrown away. Called whenever a game is loaded.
+// Returns how many items were discarded.
+function trimItems() {
+  let discarded = 0;
+  for (const id in G.items) {
+    if (G.items[id] > MAX_ITEMS) { discarded += G.items[id] - MAX_ITEMS; G.items[id] = MAX_ITEMS; }
+  }
+  if (discarded) showToast(`You can carry ${MAX_ITEMS} of each item: ${discarded} left behind.`, 4);
+  return discarded;
+}
 function itemShop(ids, cur = 0) {
   const items = ids.map(id => ({
     label: ITEMS[id].name,
@@ -658,7 +670,7 @@ function openMainMenu() {
       { label: 'Options', pick: optionsMenu },
       // New Game+ only, and only from a town: a tower with no top
       ...(G.ngPlus && MAPS[player.map].isTown ? [{ label: 'Endless Tower', pick: askEndlessTower,
-            desc: `A new tower every time. Best so far: floor ${G.flags.bestFloor || 0}.` }] : []),
+            desc: `A new tower every time. Best so far: floor ${G.tower.best}.` }] : []),
       // once the ending has been seen, the next round can be started from here
       ...(G.flags.endingSeen ? [{ label: 'New Game+', pick: askNewGamePlus, desc: 'Start over with your levels, gear and gold. Grow to LVL 255.' }] : []),
       { label: 'Quit', pick: quitGame },
@@ -911,7 +923,7 @@ function quickSave() {
 // A short note at the top of the screen that goes away by itself.
 let toast = null;
 const TOAST_SECONDS = 1.5;
-function showToast(text) { toast = { text, until: performance.now() + TOAST_SECONDS * 1000 }; }
+function showToast(text, seconds = TOAST_SECONDS) { toast = { text, until: performance.now() + seconds * 1000 }; }
 function drawToast() {
   if (!toast || performance.now() > toast.until) return;
   const w = textWidth(toast.text) + 16;
@@ -1022,7 +1034,9 @@ function drawTitle() {
 
   const last = lastSlot();                             // what CONTINUE will load
   drawText(last ? `Continue: slot ${last}  -  ${slotSummary(last)}` : 'No saved game yet.', SCREEN_W / 2, 206, '#b8c4ff', 'center');
-  drawText('Made by Andrew Van Blair with Fable 5.2', SCREEN_W / 2, 220, '#8a96b8', 'center');
+  drawText('Made by Andrew Van Blair with Fable 5.2', SCREEN_W / 2, 219, '#8a96b8', 'center');
+  const rec = readRecords();                           // the best Endless Tower results ever, whatever happened to the saves
+  if (rec.best) drawText(`Tower record: floor ${rec.best}   Bosses beaten: ${rec.bosses}`, SCREEN_W / 2, 230, '#ffd75e', 'center');
 }
 
 function drawGoodbye() {
@@ -1134,111 +1148,7 @@ function askAbilityChoice(hero) {
   });
 }
 
-// ---------------------------------------------------------------------
-// THE ENDLESS TOWER  (New Game+ only, from the pause menu in any town)
-// A tower with a brand-new random floor every time you climb a staircase. After each floor
-// you choose one of three boons. Stat boons last until the run ends (you fall, Warp out or
-// walk out); gold, EXP and items you win are yours to keep. Every 5th floor has a guardian.
-// G.run = { floor, seed, mult: stat multipliers, startBuff, expBonus, from: where we came from }
-// ---------------------------------------------------------------------
-const ENDLESS_GUARDIANS = ['cavelord', 'tombking', 'skydragon', 'magmalord'];
-
-// which monsters live on a floor: the set changes every 3 floors
-function endlessMonsters(floor) {
-  const sets = [ZONES.tower1, ZONES.crypt, ZONES.tower10, ZONES.snow, ZONES.magma];
-  return sets[Math.floor((floor - 1) / 3) % sets.length];
-}
-
-function askEndlessTower() {
-  UI.openMenu({
-    x: 40, y: 70, title: `Enter the Endless Tower?  (best: floor ${G.flags.bestFloor || 0})`,
-    items: [
-      { label: 'Yes - start climbing', pick: startEndlessRun, desc: 'Monsters get stronger every floor. You cannot save inside.' },
-      { label: 'Not now', pick: () => UI.pop() },
-    ],
-  });
-}
-
-function startEndlessRun() {
-  G.run = { floor: 0, seed: Math.floor(Math.random() * 1e9), expBonus: 1, startBuff: {},
-            mult: { hp: 1, mp: 1, str: 1, def: 1, int: 1, mag: 1 },
-            from: { map: player.map, x: player.x, y: player.y } };
-  UI.clear();
-  nextEndlessFloor();
-  UI.say(['The Endless Tower. No one has ever found the top.', 'Climb the stairs to finish a floor and choose a boon. Leave by the door, by Warp... or by falling.']);
-}
-
-// Build the next floor (the same maze generator as the desert tower) and walk in.
-function nextEndlessFloor() {
-  const run = G.run, floor = ++run.floor;
-  const guardian = floor % 5 === 0;                               // every 5th floor a boss guards the stairs
-  // Safety net: should a maze ever fail to build, try another one rather than leave you stranded.
-  let made = null;
-  for (let attempt = 0; !made && attempt < 20; attempt++) {
-    try {
-      made = generateFloor(run.seed + floor * 7919 + attempt * 104729, 19, 13, {
-        wall: 'w', floor: '-', loops: 3, chests: 1, anyStart: true,
-        entry: floor === 1 ? 'E' : '-', next: guardian ? null : '<', guard: guardian ? 'exit' : null,
-      });
-    } catch (e) { made = null; }
-  }
-  for (const key in G.flags) if (key.startsWith('chest:endless:')) delete G.flags[key];     // new floor, new chest
-  delete G.flags.runBoss;
-  const map = makeDungeon('endless', made.lines, {
-    wall: 'w', floor: '-', zone: 'endless',
-    exits: { E: { endless: 'leave' }, '<': { endless: 'next' }, S: { endless: 'next' } },
-    boss: guardian ? ENDLESS_GUARDIANS[(floor / 5 - 1) % ENDLESS_GUARDIANS.length] : null, bossFlag: 'runBoss',
-  });
-  const treasure = [{ gold: 300 * floor }, { item: 'hipotion', n: 3 }, { item: 'hiether', n: 2 }, { item: 'remedy', n: 2 }, { item: 'elixir', n: 1 }];
-  made.chests.forEach(c => { map.chests[c[0] + ',' + c[1]] = treasure[floor % treasure.length]; });
-  map.place = `Endless Tower - Floor ${floor}`;
-  wireBosses(map);
-  MAPS.endless = map;
-  floorSign.map = null;                                           // show the floor name again
-  // where do we come in? on the door (floor 1), otherwise wherever the maze put its entrance
-  let start = findTile(map, 'E');
-  if (!start) { const entry = made.entry; start = { x: entry[0], y: entry[1] }; }
-  enterMap('endless', start.x, start.y, 'up');
-}
-
-// Stairs reached: choose one of three boons, then on to the next floor.
-function endlessFloorCleared() {
-  const run = G.run;
-  const stat = (name, key, pct) => ({ label: `${name} +${pct}%`, desc: `All heroes: ${name} +${pct}% until this run ends.`, apply: () => { run.mult[key] *= 1 + pct / 100; } });
-  const pool = [
-    stat('STR', 'str', 15), stat('DEF', 'def', 15), stat('MAG', 'mag', 15), stat('INT', 'int', 15), stat('max HP', 'hp', 20), stat('max MP', 'mp', 20),
-    { label: 'Rest', desc: 'Restore all HP and MP right now.', apply: fullHeal },
-    { label: 'Head start: DEF', desc: 'Begin every battle with one Guard Up already cast.', apply: () => { run.startBuff.def = Math.min(BUFF_MAX, (run.startBuff.def || 0) + 1); } },
-    { label: 'Head start: STR', desc: 'Begin every battle with one Power Up already cast.', apply: () => { run.startBuff.str = Math.min(BUFF_MAX, (run.startBuff.str || 0) + 1); } },
-    { label: 'Wisdom', desc: '+25% EXP from every battle until this run ends.', apply: () => { run.expBonus += 0.25; } },
-    { label: 'Supplies', desc: 'Two Elixirs. Yours to keep.', apply: () => { G.items.elixir = Math.min(MAX_ITEMS, G.items.elixir + 2); } },
-    { label: `Treasure: ${500 * run.floor} gold`, desc: 'Gold. Yours to keep.', apply: () => { G.gold += 500 * run.floor; } },
-  ];
-  const offers = pool.sort(() => Math.random() - 0.5).slice(0, 3);
-  Sfx.play('victory');
-  UI.openMenu({
-    x: 60, y: 60, title: `Floor ${run.floor} cleared! Choose a boon:`,
-    items: offers.map(boon => ({ label: boon.label, desc: boon.desc, pick: () => { boon.apply(); Sfx.play('save'); UI.clear(); nextEndlessFloor(); } })),
-    onCancel: () => {},
-  });
-}
-
-function askLeaveEndless() {
-  UI.openMenu({
-    x: 60, y: 70, title: 'Leave the tower? The run ends and the boons are lost.',
-    items: [{ label: 'Stay', pick: () => UI.pop() }, { label: 'Leave', pick: () => { UI.clear(); endEndlessRun('You step back out into the daylight.'); } }],
-  });
-}
-
-// The run is over: boons vanish, and we are back where we started.
-function endEndlessRun(text) {
-  const run = G.run, cleared = run.floor - 1;
-  G.flags.bestFloor = Math.max(G.flags.bestFloor || 0, cleared);
-  G.run = null;
-  for (const h of G.party) { h.hp = Math.min(h.hp, maxStat(h, 'hp')); h.mp = Math.min(h.mp, maxStat(h, 'mp')); }   // the HP boon is gone too
-  enterMap(run.from.map, run.from.x, run.from.y, 'down');
-  UI.say([text, `Floors cleared this run: ${cleared}.  Best ever: ${G.flags.bestFloor}.`, 'The boons fade away, but everything you won is yours to keep.']);
-}
+// (The Endless Tower lives in its own file: js/tower.js)
 
 // ---------------------------------------------------------------------
 // THE ENDING AND NEW GAME+
@@ -1285,7 +1195,7 @@ function askNewGamePlus() {
 
 function newGamePlus() {
   G.ngPlus++;
-  G.flags = { bestFloor: G.flags.bestFloor };     // bosses, chests, the boat, visited towns: everything starts over (the tower record stays)
+  G.flags = {};          // bosses, chests, the boat, visited towns: everything starts over (tower progress is in G.tower and stays)
   fullHeal();
   UI.clear();
   mode = 'explore';
@@ -1499,7 +1409,7 @@ function drawWorldMap() {
 function update(dt) {
   // pick the music for where we are (Music.want only reacts when this changes)
   Music.want(mode === 'bye' ? null : mode === 'title' ? 'Title'
-           : mode === 'battle' ? (Battle.boss ? 'Boss' : 'Battle') : MAPS[player.map].music);
+           : mode === 'battle' ? (Battle.boss ? Battle.opts.music || 'Boss' : 'Battle') : MAPS[player.map].music);
   if (mode === 'title' || mode === 'bye' || mode === 'ending') return;
   if (mode === 'battle') { Battle.update(dt); return; }
   // a save from before the game had an ending: the last chest is already open, so the ending starts now

@@ -20,7 +20,7 @@ const Music = {
   volume: 1,
   muted: false,
   place: null,          // 'Town', 'World', 'Battle', 'Dungeon', 'Boss', 'Title' or null (silence)
-  places: ['Town', 'World', 'Battle', 'Dungeon', 'Boss'],     // the names the music files start with
+  places: ['Town', 'World', 'Battle', 'Dungeon', 'Boss', 'Tower', 'TowerBoss'],     // the names the music files start with
   // What plays on the TITLE SCREEN (chosen under Options > Title music):
   //   'Random'   any track of the whole game
   //   'Town'     any Town track  (or 'World', 'Battle', 'Dungeon', 'Boss')
@@ -32,10 +32,11 @@ const Music = {
   lastPlayed: {},       // remembers the last track per place, to avoid repeats
   loaded: {},           // every track we have opened so far
   // A place with no files of its own borrows another place's music.
-  fallback: { Dungeon: 'World', Boss: 'Battle' },
+  // (Tower = the Endless Tower's floors, TowerBoss = its own bosses; with no such files they use Dungeon and Boss music)
+  fallback: { Dungeon: 'World', Boss: 'Battle', Tower: 'Dungeon', TowerBoss: 'Boss' },
   counting: {},         // how many tracks each place has (worked out the first time it is needed)
   fadeSeconds: 3.5,     // how long the music takes to fade out after a battle
-  fadeAfter: ['Battle', 'Boss'],   // leaving these places fades the music out; everything else switches at once
+  fadeAfter: ['Battle', 'Boss', 'TowerBoss'],   // leaving these places fades the music out; everything else switches at once
   fading: null,         // the timer of a fade that is under way
 
   // Count the tracks of a place: is there a Town1.wav? a Town2.wav? ... until one is missing.
@@ -62,7 +63,7 @@ const Music = {
     if (place === this.place) return;
     const leaving = this.place;
     this.place = place;
-    const abrupt = place === 'Battle' || place === 'Boss';                 // a fight starts with a jolt
+    const abrupt = this.fadeAfter.includes(place);                         // a fight starts with a jolt
     // Title screen <-> game: if the right kind of music is already playing, let it play on
     // (e.g. the title plays Town music and the game starts in a town).
     const playing0 = this.current && !this.current.paused && !this.fading;
@@ -108,7 +109,7 @@ const Music = {
       }
     }
     let count = await this.countTracks(source);
-    if (!count && this.fallback[source]) { source = this.fallback[source]; fixed = 0; count = await this.countTracks(source); }
+    while (!count && this.fallback[source]) { source = this.fallback[source]; fixed = 0; count = await this.countTracks(source); }   // Tower -> Dungeon -> World
     if (!count && place === 'Title' && source !== 'Town') { source = 'Town'; fixed = 0; count = await this.countTracks(source); }   // no such file: Town music
     if (this.place !== place || !count) return;               // we moved on while counting, or there is no music at all
     if (this.current) this.current.pause();

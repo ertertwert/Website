@@ -35,6 +35,7 @@ const Battle = {
     this.fled = false;
     this.queue = []; this.msg = null; this.after = null; this.auto = false;
     this.hovered = null; this.taunt = null;
+    this.crestUsed = false;                              // the Twin Crest relic works once per battle
 
     // enemies scale with the party's average level
     // (some zones add a few extra levels: see ZONE_LEVEL_BONUS in data.js)
@@ -57,6 +58,14 @@ const Battle = {
     for (const h of G.party) {
       h.buff = { str: 0, def: 0, int: 0 }; h.status = {}; h.defending = false;
       if (G.run) for (const k in G.run.startBuff) h.buff[k] = G.run.startBuff[k];     // Endless Tower boons
+      if (hasRelic('titan') && h.hp > 0) h.status.regen = REGEN_ROUNDS;               // relic: Titan's Heart
+    }
+    // Endless Tower: the floor may have a twist (a special rule, see TWISTS in tower.js)
+    this.twist = G.run && G.run.twist && !opts.boss ? G.run.twist : null;
+    if (this.twist && this.twist.element) for (const e of this.enemies) { e.weak = this.twist.element; if (e.resist === e.weak) e.resist = null; }
+    if (this.twist && this.twist.rich) for (const e of this.enemies) {
+      for (const k of ['hp', 'maxhp', 'str', 'def', 'int', 'mag']) e[k] = Math.round(e[k] * RICH_FLOOR);
+      e.exp *= 2; e.gold *= 2;
     }
 
     const names = this.enemies.map(e => e.name).join(', ');
@@ -95,6 +104,18 @@ const Battle = {
   // defend the hero who is about to be hit, silence the caster, put the big hitter to sleep...
   planIntent(e) {
     if (e.status.sleep) { e.intent = { type: 'sleep' }; return; }
+    const kind = ENEMIES[e.kind], turn = e.turn++;
+    // ---- the Endless Tower's special talents ----
+    if (kind.shifting) {                                 // Prism Golem: a new weakness every round, and it resists the rest
+      e.weak = pick(ELEMENTS.filter(x => x !== e.weak)); e.resist = 'all';
+    }
+    if (kind.charge && turn % 4 === 2) { e.intent = { type: 'charge' }; return; }      // Storm Titan: gather power...
+    if (kind.charge && turn % 4 === 3) { e.intent = { type: 'unleash' }; return; }     // ...then let it go
+    if (kind.heals && !e.status.silence) {               // Mender: heal whoever is hurt the most
+      const hurt = this.aliveEnemies().filter(x => x.hp < x.maxhp * 0.7).sort((a, b) => a.hp / a.maxhp - b.hp / b.maxhp)[0];
+      if (hurt && Math.random() < 0.8) { e.intent = { type: 'heal', ally: hurt }; return; }
+    }
+    if (kind.rally && Math.random() < 0.35 && this.aliveEnemies().some(x => x.debuff.str < RALLY_MAX)) { e.intent = { type: 'rally' }; return; }
     const heroes = aliveHeroes();
     const taunter = this.taunt && this.taunt.hero.hp > 0 ? this.taunt.hero : null;
     const target = taunter || pick(heroes);
@@ -111,6 +132,10 @@ const Battle = {
     const it = e.intent;
     if (!it) return null;
     if (it.type === 'sleep') return ['Zzz', '#b8c4ff'];
+    if (it.type === 'charge') return ['Charging!', '#ffe060'];
+    if (it.type === 'unleash') return ['CATACLYSM > ALL', '#ff5040'];
+    if (it.type === 'heal') return [`Heal > ${it.ally === e ? 'self' : it.ally.name}`, '#7dff9a'];
+    if (it.type === 'rally') return ['War Cry', '#ffb060'];
     if (it.type === 'attack') return [`Attack > ${short(it.target)}`, '#ffb4a8'];
     return [`${it.spell.name} > ${it.target ? short(it.target) : 'ALL'}`, '#9fd0ff'];
   },
@@ -119,6 +144,10 @@ const Battle = {
     const it = e.intent;
     if (!it) return '';
     if (it.type === 'sleep') return `Asleep for ${e.status.sleep} more round${e.status.sleep === 1 ? '' : 's'}.`;
+    if (it.type === 'charge') return 'Next: gathers power. The round after, it strikes EVERYONE.';
+    if (it.type === 'unleash') return `Next: CATACLYSM on everyone, about ${Math.round(atkOf(e) / 2 * TITAN_BLAST * 0.8)} each. DEFEND!`;
+    if (it.type === 'heal') return `Next: heals ${it.ally === e ? 'itself' : it.ally.name} (silence stops it).`;
+    if (it.type === 'rally') return 'Next: a war cry. Every monster gets stronger.';
     if (it.type === 'attack') {
       const dmg = Math.max(1, Math.round(atkOf(e) / 2 - defOf(it.target) / 4));
       return `Next: attack ${it.target.name}, about ${dmg} damage` + (ENEMIES[e.kind].poison ? ' (may poison)' : '');
@@ -164,7 +193,7 @@ const Battle = {
         // Abilities = weapon skills, boosts and tricks.  Spells = magic (Silence blocks only these).
         { label: 'Abilities', pick: () => this.spellMenu(h, knownAbilities(h), 'No abilities yet'), disabled: !knownAbilities(h).length },
         { label: 'Spells', pick: () => this.spellMenu(h, knownMagic(h), 'No spells yet'), disabled: !!h.status.silence || !knownMagic(h).length },
-        { label: 'Item',   pick: () => this.itemMenu() },
+        { label: 'Item',   pick: () => this.itemMenu(), disabled: !!(this.twist && this.twist.noItems) },
         { label: 'Defend', pick: () => this.setCommand({ type: 'defend' }) },
         { label: 'Run',    pick: () => this.setCommand({ type: 'run' }) },
       ],
@@ -280,7 +309,11 @@ const Battle = {
       heroes = [];                                       // trying to run uses up the heroes' turn
     }
 
+    // Defending protects for the WHOLE round, even from a monster that moves before the hero does
+    // (otherwise you could never be sure of blocking an attack the monster has announced).
+    heroes.forEach(h => { const c = this.cmds[G.party.indexOf(h)]; if (c && c.type === 'defend') h.defending = true; });
     const order = [...heroes, ...this.aliveEnemies()].sort(() => Math.random() - 0.5);
+    if (this.twist && this.twist.ambush) order.sort((a, b) => (a.isHero ? 1 : 0) - (b.isHero ? 1 : 0));   // twist: monsters always go first
     for (const u of order) {
       this.queue.push(() => {
         const finished = this.fled || !aliveHeroes().length || !this.aliveEnemies().length;
@@ -302,6 +335,23 @@ const Battle = {
       const it = u.intent || { type: 'attack' };
       u.intent = null;
       const target = it.target && it.target.hp > 0 ? it.target : pick(aliveHeroes());
+      if (it.type === 'charge') { Sfx.play('buff'); return `${u.name} gathers a terrible power! Brace yourselves!`; }
+      if (it.type === 'unleash') {                       // everyone is hit; Defend takes most of the sting out
+        Sfx.play('hurt');
+        return `${u.name} unleashes CATACLYSM! ` + aliveHeroes().map(h =>
+          this.hurt(h, Math.max(1, Math.round(physDamage(u, h) * TITAN_BLAST * (h.defending ? TITAN_BLAST_GUARD : 1)))) + this.wake(h)).join(' ');
+      }
+      if (it.type === 'heal') {
+        if (u.status.silence) return `${u.name} tries to heal, but is silenced!`;
+        const ally = it.ally.hp > 0 ? it.ally : u;
+        Sfx.play('heal');
+        return `${u.name} chants a healing verse. ${ally.name} recovers ${healUnit(ally, Math.ceil(ally.maxhp * MENDER_HEAL))} HP.`;
+      }
+      if (it.type === 'rally') {
+        Sfx.play('buff');
+        for (const x of this.aliveEnemies()) x.debuff.str = Math.min(RALLY_MAX, Math.max(x.debuff.str, 1) * RALLY_STEP);
+        return `${u.name} lets out a war cry! The monsters' STR rises!`;
+      }
       if (it.type === 'spell') {
         if (u.status.silence) return `${u.name} tries to cast ${it.spell.name}, but is silenced!`;
         return this.castSpell(u, it.spell, target);
@@ -315,7 +365,7 @@ const Battle = {
       if (u.status.silence && !isAbility(cmd.spell)) return `${u.name} tries to cast ${cmd.spell.name}, but is silenced!`;
       return this.castSpell(u, cmd.spell, cmd.target);
     }
-    if (cmd.type === 'defend') { u.defending = true; return `${u.name} braces for the next hit.`; }
+    if (cmd.type === 'defend') { u.defending = true; return `${u.name} is on guard.`; }
     if (cmd.type === 'item') {
       const name = ITEMS[cmd.id].name;
       if (G.items[cmd.id] <= 0) return `${u.name} has no ${name} left!`;
@@ -328,10 +378,24 @@ const Battle = {
   foesOf(u) { return u.isHero ? this.aliveEnemies() : aliveHeroes(); },
 
   hurt(target, dmg) {                                    // returns the text for one hit
+    if (target.isHero && dmg >= target.hp && hasRelic('twins') && !this.crestUsed) {   // relic: Twin Crest
+      this.crestUsed = true;
+      target.hp = 1; target.flash = 0.35;
+      return `${target.name} takes ${dmg} damage, but the Twin Crest flares and ${target.name} holds on with 1 HP!`;
+    }
     target.hp = Math.max(0, target.hp - dmg);
     target.flash = 0.35;
     if (target.hp <= 0) { target.status = {}; target.intent = null; }
-    return `${target.name} takes ${dmg} damage${target.hp <= 0 ? ' and is defeated!' : '.'}`;
+    return `${target.name} takes ${dmg} damage${target.hp <= 0 ? ' and is defeated!' : '.'}` + this.fallen(target);
+  },
+  // Sol and Luna: when one twin falls, the other is filled with rage. Returns extra text.
+  fallen(target) {
+    if (target.hp > 0 || target.isHero || !ENEMIES[target.kind].twin) return '';
+    const other = this.aliveEnemies().find(e => ENEMIES[e.kind].twin && !e.enraged);
+    if (!other) return '';
+    other.enraged = true;
+    other.str = Math.round(other.str * TWIN_RAGE); other.mag = Math.round(other.mag * TWIN_RAGE);
+    return ` ${other.name} howls with grief and burns with new strength!`;
   },
   // a blow wakes a sleeper; returns extra text
   wake(target) {
@@ -421,7 +485,11 @@ const Battle = {
       }).join(' ');
     }
     // damage (maybe with an element, maybe with poison)
-    return out + victims.map(x => {
+    // "hits" (Arrow Storm): several separate shots, each at a random enemy that is still standing
+    const shots = s.hits ? Array.from({ length: s.hits }) : victims;
+    return out + shots.map(shot => {
+      const x = s.hits ? pick(this.foesOf(a)) : shot;
+      if (!x) return '';                                 // (every enemy fell before the last arrow)
       const factor = elementFactor(s, x);
       let text = this.hurt(x, spellDamage(s, a, x));
       if (factor > 1) text += ' A weak point!';
@@ -447,7 +515,7 @@ const Battle = {
       if (u.status.poison) {
         const dmg = Math.max(1, Math.round(maxHpOf(u) * POISON_DAMAGE * (isBoss(u) ? 1 / 3 : 1)));
         u.hp = Math.max(0, u.hp - dmg); u.flash = 0.35;
-        lines.push(`Poison hurts ${u.name} for ${dmg}${u.hp <= 0 ? ' and finishes them off!' : '.'}`);
+        lines.push(`Poison hurts ${u.name} for ${dmg}${u.hp <= 0 ? ' and finishes them off!' : '.'}` + this.fallen(u));
         if (u.hp <= 0) { u.status = {}; u.intent = null; continue; }
       }
       if (u.status.regen) {
@@ -520,6 +588,7 @@ const Battle = {
       // what it is about to do: above a normal monster, beside a boss
       const label = this.intentLabel(e);
       if (label && e.big) { drawText('NEXT:', cx + 38, top + 14, '#ffd75e'); drawText(label[0], cx + 38, top + 25, label[1]); }
+      if (e.big && ENEMIES[e.kind].shifting && e.weak) drawText(`WEAK: ${e.weak}`, cx + 38, top + 40, '#7dff9a');     // the Prism Golem's weakness this round
       else if (label) drawText(label[0], cx, top - 10, label[1], 'center');
       drawText(`${e.name} L${e.lvl}`, cx, 111, '#fff', 'center');
       R(ctx, '#000', cx - 21, 122, 42, 5);
@@ -556,12 +625,12 @@ const Battle = {
     if (!e) return;
     const t = ENEMIES[e.kind];
     const ailments = Object.keys(e.status).filter(k => STATUS_TAGS[k]).join(', ');
-    const down = [e.debuff.str < 1 ? 'STR down' : '', e.debuff.def < 1 ? 'DEF down' : ''].filter(Boolean).join(', ');
+    const down = [e.debuff.str < 1 ? 'STR down' : e.debuff.str > 1 ? 'STR up' : '', e.debuff.def < 1 ? 'DEF down' : '', e.enraged ? 'enraged' : ''].filter(Boolean).join(', ');
     // Every piece of text is wrapped to the width of the box, and the box grows upwards to hold the lines.
     const W = 222, LINE = 10, lines = [];
     const add = (text, color) => { if (text) for (const l of wrapText(text, W - 16)) lines.push([l, color]); };
     add(`${e.name}  LVL ${e.lvl}  HP ${e.hp}/${e.maxhp}`, '#ffd75e');
-    add(`Weak: ${t.weak || '-'}   Resists: ${t.resist || '-'}`, '#fff');
+    add(`Weak: ${e.weak || '-'}   Resists: ${e.resist === 'all' ? 'all else' : e.resist || '-'}`, '#fff');
     add(this.intentDetail(e), '#9fd0ff');
     add([ailments, down].filter(Boolean).join(', '), '#ff9ad0');
     const h = lines.length * LINE + 10, y = 234 - h;

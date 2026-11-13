@@ -33,7 +33,7 @@ const HERO_DEFS = {
     base: { hp: 32, mp: 12, str: 9,  def: 7,  int: 8,  mag: 7 },
     max:  { hp: 230, mp: 190, str: 200, def: 180, int: 180, mag: 170 },
     spells: [[2, 'guardup'], [4, 'powerup'], [5, 'windshot'], [8, 'mend'], [12, 'gale'], [16, 'healall'],
-             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [45, 'massheal']],
+             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [45, 'massheal'], [55, 'arrowstorm']],
     choices: [[6, 'lullaby', 'venomshot'], [14, 'hush', 'icearrow'], [24, 'masslullaby', 'boltarrow'], [34, 'weaken', 'expose']],
   },
   rayen: {
@@ -42,7 +42,7 @@ const HERO_DEFS = {
     max:  { hp: 200, mp: 255, str: 120, def: 140, int: 255, mag: 255 },
     spells: [[1, 'heal'], [2, 'fire'], [4, 'blaze'], [5, 'frost'], [6, 'healall'], [8, 'purify'], [9, 'healmore'],
              [13, 'thunder'], [24, 'meteor'], [28, 'massheal'], //[18, 'fullheal']
-             [32, 'raise'], [38, 'nova'], [46, 'miracle'], [10, 'warp']],
+             [32, 'raise'], [38, 'nova'], [55, 'singularity'], [10, 'warp']],
     choices: [[7, 'bolt', 'regen'], [15, 'blizzard', 'purifyall'], [26, 'fireball', 'osmose'], [36, 'icestorm', 'massraise']],
   },
 };
@@ -71,7 +71,8 @@ const SPELLS = {
   massheal: { name: 'Mass Heal', mp: 18, kind: 'heal',   target: 'party',      power: 40,  scale: 1.0 },
   raise:    { name: 'Raise',     mp: 14, kind: 'revive', target: 'ally' },
   nova:     { name: 'Nova',      mp: 30, kind: 'damage', target: 'allEnemies', power: 70,  scale: 1.3 },
-  miracle:  { name: 'Miracle',   mp: 40, kind: 'heal',   target: 'party',      power: 255, scale: 1.0 },
+  // RAYEN's strongest attack: one enemy, no element (so nothing resists it), harder than Nova hits each of its targets
+  singularity: { name: 'Singularity', mp: 40, kind: 'damage', target: 'enemy', power: 100, scale: 1.8 },
   meteor:   { name: 'Meteor',    mp: 22, kind: 'damage', target: 'allEnemies', power: 45,  scale: 1.0 },
   // SORUTRA - buffs and average spells
   guardup:  { name: 'Guard Up',  mp: 3,  kind: 'buff',   target: 'party', stat: 'def' },
@@ -83,6 +84,8 @@ const SPELLS = {
   mendmore: { name: 'Mend More', mp: 8,  kind: 'heal',   target: 'ally',       power: 40,  scale: 1.0 },
   barrier:  { name: 'Barrier',   mp: 4,  kind: 'buff',   target: 'party', stat: 'int' },
   tempest:  { name: 'Tempest',   mp: 20, kind: 'damage', target: 'allEnemies', power: 40,  scale: 0.9, element: 'wind' },
+  // hits: 4 = four separate arrows, each at a random enemy (all four at a lone boss). An Ability, so Silence cannot stop it.
+  arrowstorm: { name: 'Arrow Storm', mp: 40, kind: 'damage', target: 'allEnemies', uses: 'str', power: 10, scale: 0.7, hits: 4 },
   // ARTUROS - the weakest spells, but strong sword skills later on
   spark:    { name: 'Spark',     mp: 2,  kind: 'damage', target: 'enemy',      power: 20,   scale: 0.4, element: 'bolt' },
   firstaid: { name: 'First Aid', mp: 3,  kind: 'heal',   target: 'ally',       power: 10,  scale: 0.4 },
@@ -276,6 +279,19 @@ const ENEMIES = {
   flamespirit: { name: 'Flame Spirit', sprite: 'flamespirit', hp: 1.2, str: 0.9, def: 1.4, int: 1.6, mag: 1.8, exp: 36, gold: 36, spell: 'ember' },
   hellhound:   { name: 'Hellhound',    sprite: 'hellhound',   hp: 1.7, str: 2.2, def: 1.4, int: 0.9, mag: 0.5, exp: 36, gold: 34 },
   magmalord:   { name: 'Magma Lord',   sprite: 'magmalord', big: true, hp: 26, mp: 14, str: 2.0, def: 1.7, int: 1.6, mag: 1.9, exp: 450, gold: 3000, spell: 'firebreath' },
+  // --- the Endless Tower only (see js/tower.js). Special talents:
+  //   heals: true    mends a wounded monster ("Heal > Golem")        rally: true  a war cry that raises every monster's STR
+  //   charge: true   gathers power for a round, then hits everyone  shifting: true  its weakness changes every round
+  //   twin: true     when its twin falls, it grows stronger          boss: true   immune to sleep and silence, no running away
+  mender:    { name: 'Mender',     sprite: 'mender',    hp: 1.6, str: 1.0, def: 1.4, int: 1.8, mag: 1.8, exp: 40, gold: 40, heals: true },
+  warcaller: { name: 'War Caller', sprite: 'warcaller', hp: 2.2, str: 2.0, def: 1.5, int: 0.9, mag: 0.5, exp: 42, gold: 40, rally: true },
+  hexer:     { name: 'Hexer',      sprite: 'hexer',     hp: 1.5, str: 1.2, def: 1.3, int: 1.7, mag: 1.8, exp: 42, gold: 44 },
+  sentinel:  { name: 'Sentinel',   sprite: 'sentinel',  hp: 3.0, str: 2.2, def: 2.6, int: 1.2, mag: 0.5, exp: 46, gold: 46 },
+  mimic:     { name: 'Mimic',      sprite: 'mimic',     hp: 14, mp: 6, str: 2.3, def: 1.9, int: 1.6, mag: 1.7, exp: 300, gold: 0, boss: true, spell: 'darkwave' },
+  titan:     { name: 'Storm Titan', sprite: 'titan', big: true, hp: 30, mp: 10, str: 2.1, def: 1.8, int: 1.6, mag: 1.7, exp: 500, gold: 4000, boss: true, charge: true },
+  prism:     { name: 'Prism Golem', sprite: 'prism', big: true, hp: 32, mp: 14, str: 2.0, def: 2.0, int: 1.9, mag: 1.9, exp: 600, gold: 5000, boss: true, shifting: true, spell: 'darkwave' },
+  suntwin:   { name: 'Sol',  sprite: 'suntwin',  hp: 18, mp: 8,  str: 2.3, def: 1.7, int: 1.4, mag: 1.2, exp: 350, gold: 3000, boss: true, twin: true },
+  moontwin:  { name: 'Luna', sprite: 'moontwin', hp: 16, mp: 14, str: 1.5, def: 1.5, int: 1.9, mag: 2.0, exp: 350, gold: 3000, boss: true, twin: true },
   skydragon: { name: 'Sky Dragon', sprite: 'dragon', big: true, hp: 20, mp: 12, str: 1.8, def: 1.5, int: 1.5, mag: 1.7, exp: 300, gold: 1000, spell: 'firebreath' },
 };
 // WEAKNESSES and tricks: [weak to, resists, spells it can cast, chance that its attack poisons]
@@ -296,6 +312,8 @@ const ENEMY_TRAITS = {
   icewolf: ['fire', 'ice'], yeti: ['fire', 'ice'], frostwisp: ['fire', 'ice', ['chill', 'hush']],
   firebat: ['ice', 'fire'], salamander: ['ice', 'fire'], magmaslime: ['ice', 'fire'], lavagolem: ['ice', 'fire'],
   flamespirit: ['ice', 'fire', ['ember', 'hush']], hellhound: ['ice', 'fire'], magmalord: ['ice', 'fire'],
+  mender: ['fire'], warcaller: ['bolt'], hexer: ['wind', 'ice', ['hush', 'lullaby', 'chill'], 0.3], sentinel: ['bolt'],
+  mimic: ['fire', null, null, 0.3], titan: ['wind', 'bolt'], prism: [null], suntwin: ['ice', 'fire'], moontwin: ['fire', 'ice', ['chill', 'darkwave']],
 };
 for (const kind in ENEMY_TRAITS) {
   const [weak, resist, spells, poison] = ENEMY_TRAITS[kind];
@@ -354,7 +372,7 @@ const BOSSES = {
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
 const ENDLESS_BOOST = 0.03;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.5;
+const NG_PLUS_BOOST = 0.25;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
@@ -385,6 +403,33 @@ function chestLoot(loot) {
 // Does this map have the upgraded chests at the moment?
 const richChests = map => G.ngPlus > 0 && map.name !== 'endless';
 
+// ---------------------------------------------------------------------
+// THE ENDLESS TOWER: numbers to tune. (How it all works is in js/tower.js.)
+// ---------------------------------------------------------------------
+const ELEMENTS = ['fire', 'ice', 'bolt', 'wind'];
+const TOWER_STAT_POINTS = floor => floor / 10;     // beating the boss of floor 10, 20, 30... adds this to EVERY stat of every hero, for ever
+const TOWER_START_BOONS = start => Math.floor(start / 5);   // boons handed out when a run starts higher up (floor 11 -> 2, floor 21 -> 4)
+const TOWER_TWIST_CHANCE = 0.3;        // how often an ordinary floor has a twist (a special rule)
+const TOWER_MIMIC_CHANCE = 0.2;        // how often the chest of an ordinary floor is a Mimic
+const TOWER_MIMIC_FROM = 4;            // no Mimics below this floor
+const TOWER_MERCHANT_EVERY = 5, TOWER_MERCHANT_AT = 3;      // a trader on floors 3, 8, 13, 18...
+const TOWER_REST_PRICE = 300;          // x floor: the trader's full rest
+const TOWER_BOON_PRICE = 1500;         // x floor: the trader's boon
+const TITAN_BLAST = 3;                 // the Storm Titan's charged attack: this many times a normal hit, on everyone
+const TITAN_BLAST_GUARD = 0.5;         // ...and a hero who Defends takes only this share of it (on top of the usual halving)
+const TWIN_RAGE = 1.5;                 // when one twin falls the other's STR and MAG are multiplied by this
+const RALLY_STEP = 1.25, RALLY_MAX = 1.6;   // a War Caller's cry: STR x1.25 each time, up to x1.6
+const MENDER_HEAL = 0.3;               // a Mender restores this share of a monster's HP
+const RICH_FLOOR = 1.25;               // "Rich pickings" twist: monsters this much stronger (EXP and gold are doubled)
+// RELICS: each unique tower boss drops one the first time it falls. They work everywhere, for ever.
+const RELICS = {
+  titan: { name: "Titan's Heart", desc: 'Every hero starts each battle with Regen.' },
+  prism: { name: 'Prism Shard',   desc: 'Hitting a weakness does double damage instead of +50%.' },
+  twins: { name: 'Twin Crest',    desc: 'Once per battle, a hero who would fall holds on with 1 HP.' },
+};
+const hasRelic = id => !!G.tower.relics[id];
+const newTower = () => ({ best: 0, checkpoint: 0, relics: {}, kills: {}, mimics: 0, points: 0 });   // this save's tower progress
+
 const WARD_FACTOR = 0.25;      // while a Ward Charm is active, battles are this much as likely (a quarter)
 const ENCOUNTER_CHANCE = { '.': 0.10, 'T': 0.18, '_': 0.09, ':': 0.10, ';': 0.09, '-': 0.09,
                            '~': 0.05, '*': 0.10, 'P': 0.18, '%': 0.12, 'a': 0.09 };   // chance per step on each tile
@@ -409,12 +454,14 @@ const statCap  = () => G.ngPlus ? 999 : 255;
 
 function maxStat(hero, key) {
   const boon = G.run ? G.run.mult[key] || 1 : 1;       // Endless Tower boons raise stats for that run only
-  return Math.min(statCap(), Math.round(curve(hero.cls.base[key], hero.cls.max[key], hero.lvl) * boon));
+  const points = hero.bonus[key] || 0;                 // permanent points won from the tower's bosses (never past the cap)
+  return Math.min(statCap(), Math.round((curve(hero.cls.base[key], hero.cls.max[key], hero.lvl) + points) * boon));
 }
 
 function makeHero(id) {
   const h = { id, cls: HERO_DEFS[id], name: HERO_DEFS[id].name, isHero: true,
               lvl: 1, exp: 0, weapon: 0, armor: 0, defending: false,
+              bonus: {},                                 // permanent stat points from the Endless Tower: { str: 3, hp: 1 }
               fav: null,                                 // favorite spell or ability (the F key in battle)
               picks: {},                                 // abilities chosen at level-ups: { level: spell id }
               status: {},                                // poison / sleep / silence / regen (battle only)
@@ -427,11 +474,13 @@ function makeHero(id) {
 function makeEnemy(kind, lvl) {
   const t = ENEMIES[kind];
   // New Game+ and the Endless Tower can make everything tougher (and pay better)
-  const boost = (1 + NG_PLUS_BOOST * G.ngPlus) * (G.run ? 1 + G.run.floor * ENDLESS_BOOST : 1);
+  // (the Endless Tower has its own growth per floor instead, so NG_PLUS_BOOST does not apply inside it)
+  const boost = G.run ? 1 + G.run.floor * ENDLESS_BOOST : 1 + NG_PLUS_BOOST * G.ngPlus;
   const stat = k => Math.max(1, Math.round(curve(ENEMY_BASE[k], ENEMY_MAX[k], lvl) * (t[k] || 1) * (k === 'mp' ? 1 : boost)));
   const e = { kind, name: t.name, sprite: t.sprite, big: t.big, lvl, flash: 0,
               spells: t.spells || (t.spell ? [t.spell] : []),          // what it can cast
               status: {}, debuff: { str: 1, def: 1 },                  // battle effects on it
+              weak: t.weak, resist: t.resist, turn: 0,                 // (a copy, because some tower monsters change theirs)
               hp: stat('hp'), mp: stat('mp'), str: stat('str'), def: stat('def'), int: stat('int'), mag: stat('mag'),
               exp: Math.round(t.exp * Math.pow(lvl, 1.3) * boost),
               gold: Math.round(t.gold * (1 + (lvl - 1) * 0.25) * boost) };
@@ -468,11 +517,11 @@ function spellDamage(spell, caster, target) {
 // 1.5 if the target is weak to the spell's element, 0.5 if it resists it, otherwise 1
 function elementFactor(spell, target) {
   if (!spell.element || target.isHero) return 1;
-  const t = ENEMIES[target.kind];
-  return t.weak === spell.element ? ELEMENT_WEAK : t.resist === spell.element ? ELEMENT_RESIST : 1;
+  if (target.weak === spell.element) return hasRelic('prism') ? 2 : ELEMENT_WEAK;
+  return target.resist === spell.element || target.resist === 'all' ? ELEMENT_RESIST : 1;   // 'all' = everything but its weakness
 }
 // Is this fighter a boss? (bosses shrug off sleep and silence)
-const isBoss = u => !u.isHero && !!BOSSES[u.kind];
+const isBoss = u => !u.isHero && (!!BOSSES[u.kind] || !!ENEMIES[u.kind].boss);
 function healUnit(u, amount) {            // returns how much was really healed
   const before = u.hp;
   u.hp = Math.min(maxHpOf(u), u.hp + amount);
@@ -504,6 +553,7 @@ const BUFF_LABEL = { str: 'attack (STR)', def: 'defence (DEF)', int: 'magic defe
 function describeSpell(spell, caster) {
   const amount = Math.min(999, Math.round(spellBase(spell, caster)));
   const who = spell.target === 'allEnemies' ? 'ALL enemies' : 'one enemy';
+  if (spell.hits) return `${spell.hits} arrows at random enemies, about ${amount} damage each.`;
   if (spell.kind === 'damage') return `About ${amount} ${spell.element ? spell.element + ' ' : ''}damage to ${who}.` + (spell.inflict ? ' May poison.' : '');
   if (spell.kind === 'status') return `${spell.status === 'sleep' ? 'Puts' : 'Silences'} ${who}${spell.status === 'sleep' ? ' to sleep' : ''} (${Math.round(spell.chance * 100)}% chance).`;
   if (spell.kind === 'cure') return `Cures poison, sleep and silence for ${spell.target === 'party' ? 'the whole party' : 'one ally'}.`;
@@ -590,7 +640,8 @@ function resetGame() {                 // a brand new game starts with this
   G.items.potion = 3; G.items.ether = 1;
   G.bag = newBag();      // spare weapons and armor
   G.ngPlus = 0;          // how many times the game has been finished and started over (New Game+)
-  G.run = null;          // the Endless Tower run in progress, if any (see main.js)
+  G.run = null;          // the Endless Tower run in progress, if any (see tower.js)
+  G.tower = newTower();  // Endless Tower progress that is kept: best floor, checkpoint, relics, bosses beaten
   G.slot = null;         // which save slot this game was last saved to or loaded from
   G.seen = null;         // which world-map tiles we have laid eyes on (for the Tab map); made in main.js
   G.flags = {};          // things that happened: boss beaten, chests opened, last town visited

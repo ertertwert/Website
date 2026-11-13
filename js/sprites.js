@@ -156,6 +156,24 @@ const SKULLKING = [
   'kppppppppppppppk',
   'kppppppppppppppk',
 ];
+const MIMIC = [            // a treasure chest with teeth (Endless Tower)
+  '................',
+  '................',
+  '..kkkkkkkkkkkk..',
+  '.kbbbbbbbbbbbbk.',
+  '.kbggbbbbbbggbk.',
+  '.kbbrrbbbbrrbbk.',
+  '.kbbrrbbbbrrbbk.',
+  '.kkkkkkkkkkkkkk.',
+  '.kwkwkwkwkwkwkk.',
+  '.krrrrrrrrrrrrk.',
+  '.kkwkwkwkwkwkwk.',
+  '.kkkkkkkkkkkkkk.',
+  '.kbbbbbggbbbbbk.',
+  '.kbbbbbggbbbbbk.',
+  '.kkkkkkkkkkkkkk.',
+  '................',
+];
 const DRAGON = [
   'k..............k',
   'kk............kk',
@@ -636,6 +654,16 @@ const MONSTER_ART = {
   vampbat:  [BAT,    { k: OUTLINE, p: '#b02030', e: '#ffee00', w: '#fff' }],
   ooze:     [SLIME,  { k: OUTLINE, a: '#7fbf3f', w: '#e0ffc0', e: '#fff' }],
   boss:     [BOSS,   { k: OUTLINE, r: '#b5302a', d: '#5b1f6e', y: '#e8dcb0', e: '#ffee00', w: '#fff' }],
+  // --- the Endless Tower ---
+  mender:    [GHOST,  { k: '#4a0a3a', w: '#ffa8d8' }],
+  warcaller: [BRUTE,  brute('#c88a3a', '#8a2020', '#501010', '#f4f4f4', '#ff4040')],
+  hexer:     [BRUTE,  brute('#7a55c8', '#20203c', '#101020', '#111111', '#ff50ff')],
+  sentinel:  [KNIGHT, knight('#e0c060', '#b08a30', '#705818', '#40e0ff', '#3058c0')],
+  mimic:     [MIMIC,  { k: OUTLINE, b: '#a0661f', g: '#f1c40f', w: '#f4f4f4', r: '#d02848' }],
+  titan:     [BOSS,   { k: OUTLINE, r: '#d8a820', d: '#2a4aa0', y: '#ffffff', e: '#60e8ff', w: '#fff' }],
+  prism:     [KNIGHT, knight('#d8f6ff', '#86c8f4', '#4484c4', '#ff60ff', '#ffffff')],
+  suntwin:   [DRAGON, { k: OUTLINE, g: '#e0a020', y: '#fff0a0', w: '#fff', r: '#d03020' }],
+  moontwin:  [DRAGON, { k: OUTLINE, g: '#7c8cd4', y: '#e4ecff', w: '#fff', r: '#6040c0' }],
   // southern land
   direwolf: [WOLF,   { k: OUTLINE, g: '#4a4f66', r: '#ffee00', w: '#e8e8e8' }],
   orc:      [BRUTE,  brute('#4f8f3a', '#7a2222', '#4d1515')],
@@ -688,10 +716,21 @@ const MONSTER_ART = {
 for (const name in MONSTER_ART) SPRITES[name] = makeSprite(...MONSTER_ART[name]);
 
 // which high-detail painter goes with which little shape
+HI_ART.mimic = (p, c) => {                              // a chest that bites: lid thrown open, teeth, a long tongue
+  const dark = tint(c.b, 0.6), light = tint(c.b, 1.3);
+  p.poly(dark, 5, 44, 43, 44, 43, 27, 5, 27); p.poly(c.b, 7, 42, 41, 42, 41, 29, 7, 29);          // the box
+  p.poly(c.g, 7, 34, 41, 34, 41, 37, 7, 37); p.el(24, 36, 3.5, 4, c.g); p.el(24, 36, 1.5, 2, '#111');   // band and lock
+  p.poly(dark, 3, 20, 45, 20, 42, 6, 6, 6); p.poly(c.b, 5, 18, 43, 18, 40.5, 8, 7.5, 8);         // the lid, tipped back
+  p.poly(light, 8, 10, 40, 10, 39.5, 12, 8.5, 12); p.poly(c.g, 5, 15, 43, 15, 43.4, 18, 4.6, 18);
+  p.poly('#2a0810', 6, 20, 42, 20, 41, 29, 7, 29);                                              // the mouth
+  for (let i = 0; i < 7; i++) { p.poly(c.w, 7 + i * 5, 20, 12 + i * 5, 20, 9.5 + i * 5, 25); p.poly(c.w, 7 + i * 5, 29, 12 + i * 5, 29, 9.5 + i * 5, 25.5); }   // teeth
+  p.line(c.r, 5, 24, 27, 27, 33, 33, 37, 37, 34); p.line(tint(c.r, 1.3), 1.5, 25, 28, 28, 33);   // the tongue
+  for (const s of [1, -1]) { const X = side(s); p.el(X(9), 13, 4, 3.4, '#ffe060'); p.el(X(9), 13.4, 1.4, 2.6, '#111'); }   // eyes on the lid
+};
 const HI_PAINTERS = new Map([
   [SLIME, HI_ART.slime], [BAT, HI_ART.bat], [WOLF, HI_ART.wolf], [SPIDER, HI_ART.spider], [GHOST, HI_ART.ghost],
   [BRUTE, HI_ART.brute], [KNIGHT, HI_ART.knight], [HUMAN, HI_ART.human],
-  [BOSS, HI_ART.boss], [SKULLKING, HI_ART.skullking], [DRAGON, HI_ART.dragon],
+  [BOSS, HI_ART.boss], [SKULLKING, HI_ART.skullking], [DRAGON, HI_ART.dragon], [MIMIC, HI_ART.mimic],
 ]);
 
 // =====================================================================

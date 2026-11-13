@@ -16,10 +16,11 @@ function saveGame(slot) {
     flags: G.flags,
     bag: G.bag,
     ngPlus: G.ngPlus,
+    tower: G.tower,
     savedAt: Date.now(),                            // when this save was made
     seen: Array.from(seenTiles()).join(''),         // the explored part of the world map, as a string of 0s and 1s
     // only the things that change; everything else is rebuilt from data.js
-    party: G.party.map(h => ({ id: h.id, lvl: h.lvl, exp: h.exp, hp: h.hp, mp: h.mp, weapon: h.weapon, armor: h.armor, picks: h.picks, fav: h.fav })),
+    party: G.party.map(h => ({ id: h.id, lvl: h.lvl, exp: h.exp, hp: h.hp, mp: h.mp, weapon: h.weapon, armor: h.armor, picks: h.picks, fav: h.fav, bonus: h.bonus })),
     player: { map: player.map, x: player.x, y: player.y, dir: player.dir, onBoat: player.onBoat },
   };
   try { localStorage.setItem(slotKey(slot), JSON.stringify(data)); G.slot = slot; rememberSlot(slot); return true; }
@@ -43,6 +44,20 @@ function lastSlot() {
   return best;
 }
 
+// RECORDS: the best Endless Tower results ever reached on this computer. They are kept apart from
+// the save slots, so they stay even when a save is overwritten or a new game is started.
+const RECORDS_KEY = 'minirpg-records';
+function readRecords() {
+  let saved = null;
+  try { saved = JSON.parse(localStorage.getItem(RECORDS_KEY)); } catch (e) { }
+  return Object.assign({ best: 0, bosses: 0, mimics: 0 }, saved);
+}
+function noteRecord(change) {                       // change(records) alters them; then they are stored
+  const records = readRecords();
+  change(records);
+  try { localStorage.setItem(RECORDS_KEY, JSON.stringify(records)); } catch (e) { /* storage blocked: no records */ }
+}
+
 function readSlot(slot) {                           // the saved data of a slot, or null if it is empty
   try { return JSON.parse(localStorage.getItem(slotKey(slot))); }
   catch (e) { return null; }
@@ -57,7 +72,7 @@ function slotSummary(slot) {
   if (!data) return 'empty';
   const map = MAPS[data.player.map] || {};
   const place = map.title || (map.place ? map.place.split(' - ')[0] : 'World map');
-  return `LVL ${data.party[0].lvl}  ${place}` + (data.ngPlus ? `  NG+${data.ngPlus}` : '');
+  return `LVL ${data.party[0].lvl}  ${place}` + (data.ngPlus ? `  NG+${data.ngPlus}` : '') + (data.tower && data.tower.best ? `  Tower ${data.tower.best}` : '');
 }
 
 function loadGame(slot) {
@@ -71,7 +86,12 @@ function loadGame(slot) {
     for (const id in ITEMS) if (!(id in G.items)) G.items[id] = 0;   // items added to the game after this save was made
     G.flags = data.flags || {};                     // older saves have no flags yet
     G.bag = Object.assign(newBag(), data.bag);      // ...and no bag
+    trimItems();                                    // more than MAX_ITEMS of something? the extra is left behind (main.js)
     G.ngPlus = data.ngPlus || 0;
+    G.tower = Object.assign(newTower(), data.tower);
+    if (!data.tower && G.flags.bestFloor) G.tower.best = G.flags.bestFloor;       // saves from before the tower kept its own notes
+    for (const h of G.party) h.bonus = h.bonus || {};
+    noteRecord(r => { r.best = Math.max(r.best, G.tower.best); });               // the all-time record is never behind a save's own best
     G.run = null;
     G.slot = slot;                                  // remember where we came from, so saving suggests the same slot
     rememberSlot(slot);
