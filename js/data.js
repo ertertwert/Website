@@ -412,6 +412,7 @@ const TOWER_START_BOONS = start => Math.floor(start / 5);   // boons handed out 
 const TOWER_TWIST_CHANCE = 0.3;        // how often an ordinary floor has a twist (a special rule)
 const TOWER_MIMIC_CHANCE = 0.2;        // how often the chest of an ordinary floor is a Mimic
 const TOWER_MIMIC_FROM = 4;            // no Mimics below this floor
+const TOWER_MIMIC_POINTS = 1;          // every Mimic beaten adds this to EVERY stat of every hero, for ever
 const TOWER_MERCHANT_EVERY = 5, TOWER_MERCHANT_AT = 3;      // a trader on floors 3, 8, 13, 18...
 const TOWER_REST_PRICE = 300;          // x floor: the trader's full rest
 const TOWER_BOON_PRICE = 1500;         // x floor: the trader's boon
@@ -428,7 +429,7 @@ const RELICS = {
   twins: { name: 'Twin Crest',    desc: 'Once per battle, a hero who would fall holds on with 1 HP.' },
 };
 const hasRelic = id => !!G.tower.relics[id];
-const newTower = () => ({ best: 0, checkpoint: 0, relics: {}, kills: {}, mimics: 0, points: 0 });   // this save's tower progress
+const newTower = () => ({ best: 0, checkpoint: 0, relics: {}, kills: {}, mimics: 0, mimicsPaid: 0, points: 0 });   // this save's tower progress
 
 const WARD_FACTOR = 0.25;      // while a Ward Charm is active, battles are this much as likely (a quarter)
 const ENCOUNTER_CHANCE = { '.': 0.10, 'T': 0.18, '_': 0.09, ':': 0.10, ';': 0.09, '-': 0.09,

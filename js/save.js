@@ -91,6 +91,8 @@ function loadGame(slot) {
     G.tower = Object.assign(newTower(), data.tower);
     if (!data.tower && G.flags.bestFloor) G.tower.best = G.flags.bestFloor;       // saves from before the tower kept its own notes
     for (const h of G.party) h.bonus = h.bonus || {};
+    const owed = payMimicPoints();                                                // Mimics beaten before they gave stat points
+    if (owed) showToast(`Mimics beaten earlier: +${owed} to all stats!`, 4);
     noteRecord(r => { r.best = Math.max(r.best, G.tower.best); });               // the all-time record is never behind a save's own best
     G.run = null;
     G.slot = slot;                                  // remember where we came from, so saving suggests the same slot

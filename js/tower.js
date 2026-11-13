@@ -53,14 +53,14 @@ const endlessLevel = floor => Math.floor(floor / 2);
 
 // ---------- starting a run ----------
 function askEndlessTower() {
-  const items = [{ label: 'Start at floor 1', pick: () => startEndlessRun(1), desc: 'Monsters get stronger every floor. You cannot save inside.' }];
+  const items = [{ label: 'Start at Floor 1', pick: () => startEndlessRun(1), desc: 'Monsters get stronger every floor. You cannot save inside.' }];
   for (let c = 10; c <= G.tower.checkpoint; c += 10) {             // one line per checkpoint reached (they are never lost)
     const boons = TOWER_START_BOONS(c);
-    items.push({ label: `Start at floor ${c + 1}`, pick: () => startEndlessRun(c + 1),
+    items.push({ label: `Start at Floor ${c + 1}`, pick: () => startEndlessRun(c + 1),
                  desc: `Skip the first ${c} floors. You get ${boons} boon${boons === 1 ? '' : 's'} to start with.` });
   }
-  items.push({ label: 'Records and relics', pick: () => UI.openCustom(drawTowerRecords) });
-  items.push({ label: 'Not now', pick: () => UI.pop() });
+  items.push({ label: 'Records and Relics', pick: () => UI.openCustom(drawTowerRecords) });
+  // items.push({ label: 'Not now', pick: () => UI.pop() });
   UI.openMenu({ x: 40, y: 50, rows: 9, title: `The Endless Tower  (best: floor ${G.tower.best})`, items });
 }
 
@@ -180,7 +180,7 @@ function towerBossFight(boss) {
       // permanent stat points: every stat of every hero goes up (kept for ever in hero.bonus, never past the cap)
       for (const h of G.party) for (const key of TOWER_STATS) h.bonus[key] = (h.bonus[key] || 0) + points;
       t.points += points;
-      pages.push(`The tower's power flows into the heroes: +${points} to EVERY stat of every hero, for ever.`);
+      pages.push(`The tower's power flows into the heroes: +${points} to EVERY stat of every hero, forever.`);
       UI.say(pages, () => Sfx.play('levelup'));
     },
   }));
@@ -200,13 +200,28 @@ function mimicFight(map, x, y) {
       G.flags[`chest:endless:${x},${y}`] = true;                  // now it is just an open chest
       G.tower.mimics++;
       noteRecord(r => { r.mimics++; });
+      payMimicPoints();                                           // permanent: every stat of every hero goes up
       const gold = 1000 * floor;
       G.gold += gold; G.items.elixir = Math.min(MAX_ITEMS, G.items.elixir + 2);
       Sfx.play('chest');
-      UI.say([`Inside the Mimic: ${gold} gold and 2 Elixirs!`, 'And something more: its hoard holds a boon.'],
+      UI.say([`Inside the Mimic: ${gold} gold and 2 Elixirs!`,
+              `Its strength passes to the heroes: +${TOWER_MIMIC_POINTS} to EVERY stat of every hero, forever.`,
+              'And something more: its hoard holds a boon.'],
              () => chooseBoon("The Mimic's hoard: choose a boon", () => {}));
     },
   }));
+}
+
+// Hand out the permanent stat points for every Mimic beaten that has not been paid for yet.
+// (G.tower.mimicsPaid counts the ones already rewarded, so Mimics beaten before this reward
+// existed are paid for the next time the game is loaded.) Returns how many points were given.
+function payMimicPoints() {
+  const t = G.tower, points = (t.mimics - (t.mimicsPaid || 0)) * TOWER_MIMIC_POINTS;
+  t.mimicsPaid = t.mimics;
+  if (points <= 0) return 0;
+  for (const h of G.party) for (const key of TOWER_STATS) h.bonus[key] = (h.bonus[key] || 0) + points;
+  t.points += points;
+  return points;
 }
 
 // ---------- the trader ----------
@@ -258,8 +273,8 @@ function drawTowerRecords() {
   let y = 14;
   const line = (text, color = '#fff', x = 16) => { drawText(text, x, y, color); y += 11; };
   line('THE ENDLESS TOWER', '#ffd75e');
-  line(`This game:  best floor ${t.best}    checkpoint: floor ${t.checkpoint ? t.checkpoint + 1 : 1}`);
-  line(`Permanent bonus: +${t.points} to all stats    Mimics beaten: ${t.mimics}`);
+  line(`Current Game:  Best Floor ${t.best}         Checkpoint: Floor ${t.checkpoint ? t.checkpoint + 1 : 1}`);
+  line(`Permanent Bonus: +${t.points} to all stats    Mimics Beaten: ${t.mimics}`);
   y += 3; line('BOSSES BEATEN', '#ffd75e');
   TOWER_BOSSES.forEach((b, i) => line(`Floor ${(i + 1) * 10}+   ${b.name}`.padEnd(30) + `x ${t.kills[b.relic] || 0}`));
   y += 3; line('RELICS', '#ffd75e');
@@ -268,6 +283,6 @@ function drawTowerRecords() {
     line(have ? relic.name : '? ? ?', have ? '#7dff9a' : '#8088a8');
     wrapText(have ? relic.desc : `Beat ${b.name} to find out.`, 270).forEach(text => line(text, have ? '#fff' : '#8088a8', 26));
   }
-  y += 3; line('ALL-TIME RECORDS (kept even if a save is overwritten)', '#ffd75e');
-  line(`Best floor ${rec.best}    Bosses beaten ${rec.bosses}    Mimics beaten ${rec.mimics}`);
+  y += 3; line('ALL-TIME RECORDS', '#ffd75e');
+  line(`Best Floor ${rec.best}    Bosses Beaten ${rec.bosses}    Mimics Beaten ${rec.mimics}`);
 }
