@@ -505,16 +505,10 @@ function bigSprite(name, boss) {
 const person = (hair, clothes, dark, skin = '#f2c79a', eye = '#111') =>
   ({ k: OUTLINE, h: hair, s: skin, e: eye, c: clothes, d: dark, b: '#4a3222' });
 
-function makePerson(palette, robe = false, armored = false) {
+function makePerson(palette, robe = false, rows = null) {
   const flip = rows => rows.map(r => [...r].reverse().join(''));
   const front = HUMAN.slice();
-  if (armored) {                                       // the New Game+ armors: m = bright metal, g = trim
-    front[2]  = '...khgggggghk...';                    // a circlet around the head
-    front[7]  = '..kmmccccccmmk..';                    // shoulder plates
-    front[8]  = '..kmcccggcccmk..';
-    front[9]  = '..kscccggcccsk..';                    // a jewel on the chest
-    front[10] = '..ksggggggggsk..';                    // a wide belt
-  }
+  if (rows) for (const y in rows) front[y] = rows[y];  // an armor's own rows (see ARMOR_LOOKS)
   if (robe) {                                          // a long robe instead of legs
     front[13] = '...kcccccccck...'; front[14] = '...kddddddddk...'; front[15] = '...kkkkkkkkkk...';
   }
@@ -536,28 +530,81 @@ const HERO_SPRITES = [
   makePerson(person('#6a3fa0', '#8e4fc0', '#5b2f8a'), true),       // RAYEN: purple hood and robe
 ];
 
-// HOW THE HEROES LOOK IN THE NEW GAME+ ARMORS (armor tiers 11-14 in data.js).
-//   c = the armor itself, d = its darker shade, m = bright metal (shoulders, boots, RAYEN's hem)
-// The trim (circlet, jewel, belt) keeps each hero's own colour, so you can still tell them apart.
+// ---------------------------------------------------------------------
+// HOW THE HEROES LOOK IN EACH ARMOR. The number is the armor's place in ARMORS (data.js):
+// 0 = Clothes (the plain look above), 1 = Leather Armor ... 14 = Armor of Legend.
+// Every armor has its own colours and its own rows of the 16x16 HUMAN shape:
+//   c = the armor, d = its darker shade, m = bright metal or trim, x = a second colour (scales, runes, emblems)
+//   g = the hero's OWN colour (blue, green, purple), so you can still tell the three apart
+//   boots: the colour of the feet
+// "rows" replaces rows of the HUMAN shape: row 0 is the top of the head, rows 7-12 are the body.
+// To restyle an armor, change its colours or redraw its rows (keep every row 16 letters wide).
+// ---------------------------------------------------------------------
+const BOOTS = '#4a3222';
 const ARMOR_LOOKS = {
-  11: { c: '#e0a030', d: '#a06a18', m: '#fff0a0' },    // Sunsteel: gold
-  12: { c: '#8fa6d0', d: '#566c96', m: '#f0f6ff' },    // Starforged: steel blue and silver
-  13: { c: '#3c2c60', d: '#22183a', m: '#d060f0' },    // Eclipse: night purple with glowing edges
-  14: { c: '#f4f4fa', d: '#b4b4cc', m: '#ffc820' },    // Legend: white and gold
+  1: { c: '#9a6a3a', d: '#6b4423', m: '#e8c870', boots: BOOTS, rows: {             // Leather Armor: a vest over the tunic
+        7: '...kgccccccgk...', 8: '..kggccccccggk..', 9: '..ksccccccccsk..',
+       10: '..ksdddmmdddsk..', 11: '...kcccccccck...', 12: '...kggggggggk...' } },
+  2: { c: '#b4bcc6', d: '#7c848e', m: '#e0e6ee', boots: BOOTS, rows: {             // Chain Mail: woven rings
+        7: '...kdcdcdcdck...', 8: '..kcdcdcdcdcdk..', 9: '..ksdcdcdcdcsk..',
+       10: '..ksggggggggsk..', 11: '...kdcdcdcdck...', 12: '...kcdcdcdcdk...' } },
+  3: { c: '#8a94a4', d: '#5a6474', m: '#ccd4e0', boots: '#ccd4e0', rows: {          // Plate Armor: plain steel, shoulder plates
+        7: '..kmmccccccmmk..', 8: '..kmccccccccmk..', 9: '..ksccccccccsk..',
+       10: '..ksddddddddsk..', 11: '...kcccccccck...', 12: '...kcmccccmck...' } },
+  4: { c: '#8fdcd2', d: '#559c94', m: '#effffb', boots: '#effffb', rows: {          // Mythril Mail: pale green, a bright seam
+        7: '..kmmccmmccmmk..', 8: '..kmcccmmcccmk..', 9: '..kscccmmcccsk..',
+       10: '..ksggggggggsk..', 11: '...kcccmmccck...', 12: '...kcccccccck...' } },
+  5: { c: '#c8402c', d: '#7a2018', m: '#f4d898', x: '#7e1810', boots: '#7a2018', rows: {   // Dragon Plate: red scales, horned shoulders
+        6: '..m.kssssssk.m..',
+        7: '..kmccxccxccmk..', 8: '..kcxccxccxcck..', 9: '..ksccxccxccsk..',
+       10: '..ksddddddddsk..', 11: '...kcxccxccxk...', 12: '...kccxccxcck...' } },
+  6: { c: '#2c3676', d: '#1a2048', m: '#7482cc', x: '#60e8ff', boots: '#1a2048', rows: {   // Rune Mail: dark blue, glowing runes, high collar
+        6: '...kcssssssck...',
+        7: '...kccxccxcck...', 8: '..kccccxxcccck..', 9: '..kscxccccxcsk..',
+       10: '..ksccxxxxccsk..', 11: '...kccxccxcck...', 12: '...kddddddddk...' } },
+  7: { c: '#3a66d8', d: '#2444a0', m: '#f0f4ff', x: '#d83030', boots: '#f0f4ff', rows: {   // Hero's Armor: royal blue, a red scarf
+        7: '...kxxxxxxxxk...', 8: '..kmccccccccmk..', 9: '..kscccmmcccsk..',
+       10: '..ksggggggggsk..', 11: '...kcccccccck...', 12: '...kcccccccck...' } },
+  8: { c: '#dce0ea', d: '#949cac', m: '#f0c040', x: '#3058c0', boots: '#f0c040', rows: {   // Aegis Plate: silver, wide gold shoulders, a blue cross
+        7: '.kmmmccccccmmmk.', 8: '..kmmccxxccmmk..', 9: '..kscxxxxxxcsk..',
+       10: '..kscccxxcccsk..', 11: '...kcccxxccck...', 12: '...kddddddddk...' } },
+  9: { c: '#d07a30', d: '#8a4a18', m: '#ffc070', boots: '#ffc070', rows: {          // Orichalcum Mail: bronze bands
+        7: '..kmmccccccmmk..', 8: '..kcmmmmmmmmck..', 9: '..ksccccccccsk..',
+       10: '..ksmmmmmmmmsk..', 11: '...kcccccccck...', 12: '...kmmmmmmmmk...' } },
+ 10: { c: '#a8d8ff', d: '#6aa0d8', m: '#ffffff', x: '#fff0a0', boots: '#ffffff', rows: {   // Celestial Armor: sky blue, white wings at the shoulders
+        2: '...khmmmmmmhk...', 6: '.mm.kssssssk.mm.',
+        7: '..kmmccccccmmk..', 8: '..kcccxxxxccck..', 9: '..ksccxxxxccsk..',
+       10: '..ksggggggggsk..', 11: '...kcccccccck...', 12: '...kcccccccck...' } },
+ 11: { c: '#e0a030', d: '#a06a18', m: '#fff0a0', x: '#e04818', boots: '#fff0a0', rows: {   // Sunsteel Mail: gold, a blazing sun on the chest
+        2: '...khgggggghk...',
+        7: '..kmmccccccmmk..', 8: '..kmccxmmxccmk..', 9: '..kscxmmmmxcsk..',
+       10: '..ksccxmmxccsk..', 11: '...kcccccccck...', 12: '...kggggggggk...' } },
+ 12: { c: '#5464b0', d: '#36427c', m: '#e4ecff', x: '#ffffff', boots: '#e4ecff', rows: {   // Starforged Mail: night blue scattered with stars
+        2: '...khgggggghk...',
+        7: '..kmmcxccccmmk..', 8: '..kmccccccxcmk..', 9: '..ksccxcccccsk..',
+       10: '..ksggggggggsk..', 11: '...kcccccxcck...', 12: '...kcxcccccck...' } },
+ 13: { c: '#3c2c60', d: '#22183a', m: '#d868f8', boots: '#d868f8', rows: {          // Eclipse Mail: black-violet, horned helm, a glowing ring
+        0: '..m.kkkkkkkk.m..', 1: '...mhhhhhhhhm...',
+        7: '..kmmccccccmmk..', 8: '..kmcccmmcccmk..', 9: '..ksccmccmccsk..',
+       10: '..kscccmmcccsk..', 11: '...kcccccccck...', 12: '...kmmmmmmmmk...' } },
+ 14: { c: '#f6f6fc', d: '#b4b4cc', m: '#ffc820', boots: '#ffc820', rows: {          // Armor of Legend: white and gold, a crown, a cape in the hero's colour
+        0: '....mkmkkmkm....', 1: '...kmmmmmmmmk...',
+        7: '..kmmccccccmmk..', 8: '..kmccccccccmk..', 9: '..kscccggcccsk..',
+       10: '..ksmmmmmmmmsk..', 11: '...kgccccccgk...', 12: '...kgccccccgk...' } },
 };
-const HERO_LOOK = [                                    // [hair, trim colour, wears a robe?]
+const HERO_LOOK = [                                    // [hair, the hero's own colour, wears a robe?]
   ['#8b4513', '#2e6fd0', false], ['#e0b040', '#3d9142', false], ['#6a3fa0', '#b070e0', true],
 ];
 const heroLookCache = {};
 // The walking sprites of hero number i (0-2) wearing armor of this tier.
 function heroLook(i, armorTier) {
   const look = ARMOR_LOOKS[armorTier];
-  if (!look) return HERO_SPRITES[i];                   // ordinary armor: the ordinary look
+  if (!look) return HERO_SPRITES[i];                   // Clothes (or an armor without a look): the plain look
   const key = i + ':' + armorTier;
   if (!heroLookCache[key]) {
-    const [hair, trim, robe] = HERO_LOOK[i];
-    const palette = Object.assign(person(hair, look.c, robe ? look.m : look.d), { m: look.m, g: trim, b: look.m });
-    heroLookCache[key] = makePerson(palette, robe, true);
+    const [hair, own, robe] = HERO_LOOK[i];
+    const palette = Object.assign(person(hair, look.c, look.d), { m: look.m, x: look.x || look.m, g: own, b: look.boots });
+    heroLookCache[key] = makePerson(palette, robe, look.rows);
   }
   return heroLookCache[key];
 }
