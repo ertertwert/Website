@@ -1164,6 +1164,7 @@ function askAbilityChoice(hero) {
 // are thrown back to the beginning with everything they own: New Game+. There the heroes can
 // grow past LVL 99 (see levelCap in data.js). Monsters keep pace with the party's level as always.
 // ---------------------------------------------------------------------
+const ENDING_QUAKE_MUSIC = 'TowerBoss1';     // the track that starts with the earthquake (a place name plus a number = that exact file)
 const ending = { stage: 0 };          // 0 = sailing home, 1 = THE END, 2 = the earthquake
 
 function startEnding() {
@@ -1417,6 +1418,7 @@ function drawWorldMap() {
 function update(dt) {
   // pick the music for where we are (Music.want only reacts when this changes)
   Music.want(mode === 'bye' ? null : mode === 'title' ? 'Title'
+           : mode === 'ending' && ending.stage === 2 ? ENDING_QUAKE_MUSIC      // "Wait. Do you feel that?"
            : mode === 'battle' ? (Battle.boss ? Battle.opts.music || 'Boss' : 'Battle') : MAPS[player.map].music);
   if (mode === 'title' || mode === 'bye' || mode === 'ending') return;
   if (mode === 'battle') { Battle.update(dt); return; }

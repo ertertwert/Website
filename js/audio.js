@@ -95,7 +95,9 @@ const Music = {
     if (!place) return;
 
     // whose files do we play? our own, or the fallback's if we have none
-    let source = place, fixed = 0;                            // fixed = one exact track number (title screen only)
+    let source = place, fixed = 0;                            // fixed = one exact track number
+    const exact = /^([A-Za-z]+)(\d+)$/.exec(place);           // Music.want('TowerBoss1') asks for that very file
+    if (exact) { source = exact[1]; fixed = Number(exact[2]); }
     if (place === 'Title') {
       const wanted = this.titleTrack;
       if (wanted === 'Random') {                              // any track of any place

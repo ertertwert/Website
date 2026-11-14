@@ -246,7 +246,8 @@ const Battle = {
       };
     });
     if (!items.length) items.push({ label: nothing, disabled: true });
-    UI.openMenu({ x: 90, y: 132, maxBottom: 208, w: 126, rows: BATTLE_ROWS, items, spellIds: list });
+    UI.openMenu({ x: 90, y: 132, maxBottom: 208, w: 126, rows: BATTLE_ROWS, items, spellIds: list,
+                  hideWhenTargeting: true });           // steps out of the way while you choose which monster to hit
   },
   itemMenu() {
     const items = Object.keys(ITEMS).filter(id => G.items[id] > 0 && !ITEMS[id].ward).map(id => ({   // no Ward Charms in battle

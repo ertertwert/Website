@@ -16,7 +16,8 @@ const UI = {
   //          (desc = help text shown at the bottom of the screen while highlighted)
   //   options: x, y, w, title, cur (cursor start), onCancel, extra (extra drawing),
   //            maxBottom (lowest pixel the menu may reach),
-  //            rows (how many lines to show at once; longer lists scroll), line (line height)
+  //            rows (how many lines to show at once; longer lists scroll), line (line height),
+  //            hideWhenTargeting (not drawn while a list of monsters to target is open on top of it)
   openMenu(m) {
     m.type = 'menu';
     m.cur = clamp(m.cur || 0, 0, m.items.length - 1);
@@ -108,6 +109,7 @@ const UI = {
 
   draw() {
     for (const t of this.stack) {
+      if (t.type === 'menu' && this.top.enemyList && t.hideWhenTargeting) continue;   // choosing a monster: keep the view clear
       if (t.type === 'menu') this.drawMenu(t);
       else if (t.type === 'say') drawMessage(t.pages[t.page]);
       else t.draw();
