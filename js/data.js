@@ -379,8 +379,8 @@ const BOSSES = {
 };
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
-const ENDLESS_BOOST = 0.02;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.2;
+const ENDLESS_BOOST = 0.03;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
+const NG_PLUS_BOOST = 0.25;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
