@@ -177,7 +177,7 @@ function towerBossFight(boss) {
         t.relics[boss.relic] = true;
         pages.push(`RELIC FOUND: ${RELICS[boss.relic].name}!  ${RELICS[boss.relic].desc}  It is yours for ever.`);
       }
-      // permanent stat points: every stat of every hero goes up (kept for ever in hero.bonus, never past the cap)
+      // permanent stat points: every stat of every hero goes up (kept for ever in hero.bonus; they can lift a stat past the cap)
       for (const h of G.party) for (const key of TOWER_STATS) h.bonus[key] = (h.bonus[key] || 0) + points;
       t.points += points;
       pages.push(`The tower's power flows into the heroes: +${points} to EVERY stat of every hero, forever.`);

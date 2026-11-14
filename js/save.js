@@ -16,6 +16,7 @@ function saveGame(slot) {
     flags: G.flags,
     bag: G.bag,
     ngPlus: G.ngPlus,
+    difficulty: G.difficulty,
     tower: G.tower,
     savedAt: Date.now(),                            // when this save was made
     seen: Array.from(seenTiles()).join(''),         // the explored part of the world map, as a string of 0s and 1s
@@ -72,7 +73,7 @@ function slotSummary(slot) {
   if (!data) return 'empty';
   const map = MAPS[data.player.map] || {};
   const place = map.title || (map.place ? map.place.split(' - ')[0] : 'World map');
-  return `LVL ${data.party[0].lvl}  ${place}` + (data.ngPlus ? `  NG+${data.ngPlus}` : '') + (data.tower && data.tower.best ? `  Tower ${data.tower.best}` : '');
+  return `LVL ${data.party[0].lvl}  ${place}` + (data.ngPlus ? `  NG+${data.ngPlus}` : '') + (data.difficulty && data.difficulty !== 'Normal' ? `  ${data.difficulty}` : '') + (data.tower && data.tower.best ? `  Tower ${data.tower.best}` : '');
 }
 
 function loadGame(slot) {
@@ -88,6 +89,7 @@ function loadGame(slot) {
     G.bag = Object.assign(newBag(), data.bag);      // ...and no bag
     trimItems();                                    // more than MAX_ITEMS of something? the extra is left behind (main.js)
     G.ngPlus = data.ngPlus || 0;
+    G.difficulty = DIFFICULTIES[data.difficulty] ? data.difficulty : 'Normal';     // older saves: Normal
     G.tower = Object.assign(newTower(), data.tower);
     if (!data.tower && G.flags.bestFloor) G.tower.best = G.flags.bestFloor;       // saves from before the tower kept its own notes
     for (const h of G.party) h.bonus = h.bonus || {};

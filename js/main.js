@@ -865,8 +865,16 @@ function showTitle() {
   });
 }
 
+// NEW GAME: first choose how hard the monsters are (see DIFFICULTIES in data.js), then begin.
 function newGame() {
+  UI.openMenu({
+    x: 60, y: 90, title: 'How hard should the monsters be?',
+    items: Object.keys(DIFFICULTIES).map(name => ({ label: name, desc: DIFFICULTIES[name].desc, pick: () => beginNewGame(name) })),
+  });
+}
+function beginNewGame(difficulty) {
   resetGame();
+  G.difficulty = difficulty;
   Object.assign(player, { map: 'town', x: MAPS.town.start.x, y: MAPS.town.start.y, dir: 'down', moving: false, safeSteps: 0, path: null, onBoat: false });
   resetFollowers();
   UI.clear();

@@ -33,7 +33,7 @@ const HERO_DEFS = {
     base: { hp: 32, mp: 12, str: 9,  def: 7,  int: 8,  mag: 7 },
     max:  { hp: 230, mp: 190, str: 200, def: 180, int: 180, mag: 170 },
     spells: [[2, 'guardup'], [4, 'powerup'], [5, 'windshot'], [8, 'mend'], [12, 'gale'], [16, 'healall'],
-             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [45, 'massheal'], [55, 'arrowstorm']],
+             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [45, 'massheal'], [55, 'arrowstorm'], [70, 'renewal']],
     choices: [[6, 'lullaby', 'venomshot'], [14, 'hush', 'icearrow'], [24, 'masslullaby', 'boltarrow'], [34, 'weaken', 'expose']],
   },
   rayen: {
@@ -72,7 +72,7 @@ const SPELLS = {
   raise:    { name: 'Raise',     mp: 14, kind: 'revive', target: 'ally' },
   nova:     { name: 'Nova',      mp: 30, kind: 'damage', target: 'allEnemies', power: 70,  scale: 1.3 },
   // RAYEN's strongest attack: one enemy, no element (so nothing resists it), harder than Nova hits each of its targets
-  singularity: { name: 'Singularity', mp: 40, kind: 'damage', target: 'enemy', power: 100, scale: 1.8 },
+  singularity: { name: 'Singularity', mp: 40, kind: 'damage', target: 'enemy', power: 85, scale: 1.8 },
   meteor:   { name: 'Meteor',    mp: 22, kind: 'damage', target: 'allEnemies', power: 45,  scale: 1.0 },
   // SORUTRA - buffs and average spells
   guardup:  { name: 'Guard Up',  mp: 3,  kind: 'buff',   target: 'party', stat: 'def' },
@@ -84,8 +84,10 @@ const SPELLS = {
   mendmore: { name: 'Mend More', mp: 8,  kind: 'heal',   target: 'ally',       power: 40,  scale: 1.0 },
   barrier:  { name: 'Barrier',   mp: 4,  kind: 'buff',   target: 'party', stat: 'int' },
   tempest:  { name: 'Tempest',   mp: 20, kind: 'damage', target: 'allEnemies', power: 40,  scale: 0.9, element: 'wind' },
+  // Regen on the whole party. rounds: how long it lasts (plain Regen uses REGEN_ROUNDS)
+  renewal:  { name: 'Renewal',   mp: 50, kind: 'regen',  target: 'party', rounds: 3 },
   // hits: 4 = four separate arrows, each at a random enemy (all four at a lone boss). An Ability, so Silence cannot stop it.
-  arrowstorm: { name: 'Arrow Storm', mp: 40, kind: 'damage', target: 'allEnemies', uses: 'str', power: 10, scale: 0.7, hits: 4 },
+  arrowstorm: { name: 'Arrow Storm', mp: 40, kind: 'damage', target: 'allEnemies', uses: 'str', power: 8, scale: 0.7, hits: 4 },
   // ARTUROS - the weakest spells, but strong sword skills later on
   spark:    { name: 'Spark',     mp: 2,  kind: 'damage', target: 'enemy',      power: 20,   scale: 0.4, element: 'bolt' },
   firstaid: { name: 'First Aid', mp: 3,  kind: 'heal',   target: 'ally',       power: 10,  scale: 0.4 },
@@ -130,6 +132,12 @@ const SPELLS = {
   chill:    { name: 'Chill',     mp: 3,  kind: 'damage', target: 'enemy',      power: 6,   scale: 0.45, element: 'ice' },
   darkwave: { name: 'Dark Wave', mp: 5,  kind: 'damage', target: 'allEnemies', power: 6,   scale: 0.35 },
   firebreath:{ name: 'Fire Breath', mp: 6, kind: 'damage', target: 'allEnemies', power: 10, scale: 0.32, element: 'fire' },
+  // attacks that hurt AND may leave an ailment behind:  inflict = which one,  chance = how often (0.5 = half the time)
+  venomspit:  { name: 'Venom Spit',  mp: 4, kind: 'damage', target: 'enemy',      power: 6, scale: 0.45, inflict: 'poison',  chance: 0.7 },
+  toxiccloud: { name: 'Toxic Cloud', mp: 7, kind: 'damage', target: 'allEnemies', power: 4, scale: 0.3,  inflict: 'poison',  chance: 0.5 },
+  shriek:     { name: 'Shriek',      mp: 6, kind: 'damage', target: 'allEnemies', power: 5, scale: 0.3,  inflict: 'silence', chance: 0.4, element: 'wind' },
+  mindspike:  { name: 'Mind Spike',  mp: 5, kind: 'damage', target: 'enemy',      power: 8, scale: 0.5,  inflict: 'silence', chance: 0.6 },
+  nightmare:  { name: 'Nightmare',   mp: 6, kind: 'damage', target: 'enemy',      power: 8, scale: 0.5,  inflict: 'sleep',   chance: 0.5 },
 };
 // STATUS EFFECTS (they wear off when the battle ends)
 //   poison  - lose some HP at the end of every round          cure: Antidote, Remedy, Purify
@@ -199,7 +207,7 @@ const ITEMS = {
   hipotion: { name: 'Hi-Potion',    price: 120,  desc: 'HP +120', hp: 120 },
   ether:    { name: 'Ether',        price: 60,  desc: 'MP +20',  mp: 20 },
   hiether:  { name: 'Hi-Ether',     price: 300, desc: 'MP +60',  mp: 60 },
-  elixir:   { name: 'Elixir',       price: 1200, desc: 'Full HP and MP', hp: 999, mp: 999 },
+  elixir:   { name: 'Elixir',       price: 1200, desc: 'Full HP and MP', hp: 9999, mp: 9999 },   // (9999: tower points can lift HP past 999)
   revive:   { name: 'Phoenix Leaf', price: 100,  desc: 'Revives', revive: true },
   // cures for status effects (only useful in battle, because effects end with the battle)
   // antidote: { name: 'Antidote',       price: 30,  desc: 'Cures poison',     cure: ['poison'] },
@@ -298,20 +306,20 @@ const ENEMIES = {
 // (anything left out is simply "none")
 const ENEMY_TRAITS = {
   slime: ['bolt'], bat: ['wind'], wolf: ['fire'], goblin: ['fire'], imp: ['ice', 'fire'],
-  skeleton: ['fire'], spider: ['fire', null, null, 0.3], ghost: ['bolt', 'ice', ['chill', 'lullaby']], vampbat: ['wind'], ooze: ['ice'],
-  cavelord: ['ice', 'fire'],
+  skeleton: ['fire'], spider: ['fire', null, ['venomspit'], 0.3], ghost: ['bolt', 'ice', ['chill', 'lullaby']], vampbat: ['wind', null, ['shriek']], ooze: ['ice', null, ['toxiccloud']],
+  cavelord: ['ice', 'fire', ['darkwave', 'venomspit']],
   direwolf: ['fire'], orc: ['bolt'], wisp: ['ice', 'fire'],
-  scorpion: ['ice', null, null, 0.35], vulture: ['wind'], sandslime: ['ice'], mummy: ['fire'],
-  wraith: ['fire', 'ice', ['chill', 'hush']], scarab: ['wind', null, null, 0.25], boneknight: ['bolt'], cursedflame: ['ice', 'fire'],
-  tombking: ['fire', 'ice'],
+  scorpion: ['ice', null, ['venomspit'], 0.35], vulture: ['wind', null, ['shriek']], sandslime: ['ice', null, ['toxiccloud']], mummy: ['fire', null, ['nightmare']],
+  wraith: ['fire', 'ice', ['chill', 'mindspike']], scarab: ['wind', null, ['venomspit'], 0.25], boneknight: ['bolt'], cursedflame: ['ice', 'fire'],
+  tombking: ['fire', 'ice', ['darkwave', 'nightmare', 'toxiccloud']],
   ogre: ['bolt'], wyvern: ['ice'], darkknight: ['bolt'],
-  gargoyle: ['wind'], golem: ['bolt'], specter: ['fire', 'ice', ['chill', 'lullaby']], fiend: ['ice', 'fire'],
-  archfiend: ['ice', 'fire', ['darkwave', 'hush']], drake: ['ice'], skydragon: ['ice', 'wind'],
-  seaserpent: ['bolt', 'ice'], jellyfish: ['bolt', null, null, 0.35], kraken: ['bolt', null, null, 0.25], seahawk: ['wind'],
-  treant: ['fire'], harpy: ['wind', null, ['lullaby']], lizardman: ['ice'],
+  gargoyle: ['wind'], golem: ['bolt'], specter: ['fire', 'ice', ['chill', 'nightmare']], fiend: ['ice', 'fire'],
+  archfiend: ['ice', 'fire', ['darkwave', 'mindspike']], drake: ['ice'], skydragon: ['ice', 'wind', ['firebreath', 'shriek']],
+  seaserpent: ['bolt', 'ice'], jellyfish: ['bolt', null, ['venomspit'], 0.35], kraken: ['bolt', null, ['toxiccloud'], 0.25], seahawk: ['wind', null, ['shriek']],
+  treant: ['fire', null, ['toxiccloud']], harpy: ['wind', null, ['lullaby', 'shriek']], lizardman: ['ice'],
   icewolf: ['fire', 'ice'], yeti: ['fire', 'ice'], frostwisp: ['fire', 'ice', ['chill', 'hush']],
-  firebat: ['ice', 'fire'], salamander: ['ice', 'fire'], magmaslime: ['ice', 'fire'], lavagolem: ['ice', 'fire'],
-  flamespirit: ['ice', 'fire', ['ember', 'hush']], hellhound: ['ice', 'fire'], magmalord: ['ice', 'fire'],
+  firebat: ['ice', 'fire', ['shriek']], salamander: ['ice', 'fire'], magmaslime: ['ice', 'fire', ['toxiccloud']], lavagolem: ['ice', 'fire'],
+  flamespirit: ['ice', 'fire', ['ember', 'hush']], hellhound: ['ice', 'fire'], magmalord: ['ice', 'fire', ['firebreath', 'toxiccloud', 'mindspike']],
   mender: ['fire'], warcaller: ['bolt'], hexer: ['wind', 'ice', ['hush', 'lullaby', 'chill'], 0.3], sentinel: ['bolt'],
   mimic: ['fire', null, null, 0.3], titan: ['wind', 'bolt'], prism: [null], suntwin: ['ice', 'fire'], moontwin: ['fire', 'ice', ['chill', 'darkwave']],
 };
@@ -371,8 +379,8 @@ const BOSSES = {
 };
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
-const ENDLESS_BOOST = 0.03;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.25;
+const ENDLESS_BOOST = 0.01;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
+const NG_PLUS_BOOST = 0.15;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
@@ -455,8 +463,9 @@ const statCap  = () => G.ngPlus ? 999 : 255;
 
 function maxStat(hero, key) {
   const boon = G.run ? G.run.mult[key] || 1 : 1;       // Endless Tower boons raise stats for that run only
-  const points = hero.bonus[key] || 0;                 // permanent points won from the tower's bosses (never past the cap)
-  return Math.min(statCap(), Math.round((curve(hero.cls.base[key], hero.cls.max[key], hero.lvl) + points) * boon));
+  // Levels and boons stop at the cap (255, or 999 in New Game+). The permanent points won in the
+  // Endless Tower (hero.bonus) are added AFTER that, so they are the one way to go past it.
+  return Math.min(statCap(), Math.round(curve(hero.cls.base[key], hero.cls.max[key], hero.lvl) * boon)) + (hero.bonus[key] || 0);
 }
 
 function makeHero(id) {
@@ -472,26 +481,86 @@ function makeHero(id) {
   return h;
 }
 
+// =====================================================================
+// ITEM DROPS: after a battle is won, the monsters may leave an item behind.
+//   1. One roll per battle: DROP_CHANCE (0.2 = one battle in five). Bosses use BOSS_DROP_CHANCE.
+//   2. If the roll succeeds, WHICH item is picked by weight: an item with weight 10 turns up ten
+//      times as often as one with weight 1. Weight 0 (or leaving the item out) = never drops.
+//      The weights do not have to add up to anything.
+// If the party cannot carry any more of the item that was picked (MAX_ITEMS), it is simply lost:
+// keeping full stacks of the common items does NOT make the rare ones turn up more often.
+// =====================================================================
+const DROP_CHANCE = 0.2;
+const BOSS_DROP_CHANCE = 1;            // 1 = bosses always leave something
+const DROP_WEIGHTS = {
+  potion: 10,
+  ether: 5,
+  hipotion: 3,
+  hiether: 2,
+  revive: 2,
+  remedy: 2,
+  elixir: 0.2,                         // super rare: about 1 drop in 120
+  ward: 0,
+};
+// Roll for a drop. Returns the id of the item ('potion'), or null for nothing.
+function rollDrop(boss) {
+  if (Math.random() >= (boss ? BOSS_DROP_CHANCE : DROP_CHANCE)) return null;
+  const ids = Object.keys(DROP_WEIGHTS).filter(id => ITEMS[id] && DROP_WEIGHTS[id] > 0);
+  let ticket = Math.random() * ids.reduce((sum, id) => sum + DROP_WEIGHTS[id], 0);   // draw a ticket...
+  for (const id of ids) { ticket -= DROP_WEIGHTS[id]; if (ticket < 0) return id; }   // ...and see whose it is
+  return null;
+}
+
+// =====================================================================
+// DIFFICULTY KNOBS: change how strong EVERY monster is without touching the monsters one by one.
+// 1 = as designed, 1.5 = half as much again, 0.8 = a fifth less.
+//   hp       how much damage a monster can take
+//   attack   its physical hits (STR)            magic    its spells (MAG)
+//   defense  how well it shrugs off YOUR hits and spells (DEF and INT)
+//   exp      EXP it gives (lower = slower levelling)          gold     gold it gives
+// There is one set for each way of playing:
+//   first  the first playthrough        plus   New Game+ (on top of NG_PLUS_BOOST per cycle)
+//   tower  the Endless Tower (on top of its growth per floor)
+// =====================================================================
+const SCALING = {
+  first: { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
+  plus:  { hp: 1.3, attack: 1.1, magic: 1.1, defense: 1, exp: 1, gold: 1 },
+  tower: { hp: 1, attack: 1, magic: 1, defense: 1, exp: 1, gold: 1 },
+};
+// DIFFICULTY: chosen when a new game starts and kept with the save. It multiplies the set above.
+// (Add a line to offer another choice, e.g.  Brutal: { hp: 2, attack: 1.5, ... })
+const DIFFICULTIES = {
+  Normal: { hp: 1,   attack: 1,    magic: 1,    defense: 1, exp: 1, gold: 1, desc: 'The game as designed.' },
+  Hard:   { hp: 1.4, attack: 1.25, magic: 1.25, defense: 1, exp: 1, gold: 1, desc: 'Monsters have 40% more HP and hit 25% harder.' },
+};
+// which knob belongs to which monster stat
+const KNOB_OF = { hp: 'hp', str: 'attack', mag: 'magic', def: 'defense', int: 'defense' };
+// the multiplier for one knob right now, e.g. scaling('hp')
+function scaling(knob) {
+  const set = G.run ? SCALING.tower : G.ngPlus ? SCALING.plus : SCALING.first;
+  return set[knob] * (DIFFICULTIES[G.difficulty] || DIFFICULTIES.Normal)[knob];
+}
+
 function makeEnemy(kind, lvl) {
   const t = ENEMIES[kind];
   // New Game+ and the Endless Tower can make everything tougher (and pay better)
   // (the Endless Tower has its own growth per floor instead, so NG_PLUS_BOOST does not apply inside it)
   const boost = G.run ? 1 + G.run.floor * ENDLESS_BOOST : 1 + NG_PLUS_BOOST * G.ngPlus;
-  const stat = k => Math.max(1, Math.round(curve(ENEMY_BASE[k], ENEMY_MAX[k], lvl) * (t[k] || 1) * (k === 'mp' ? 1 : boost)));
+  const stat = k => Math.max(1, Math.round(curve(ENEMY_BASE[k], ENEMY_MAX[k], lvl) * (t[k] || 1) * (k === 'mp' ? 1 : boost * scaling(KNOB_OF[k]))));   // (see DIFFICULTY KNOBS above)
   const e = { kind, name: t.name, sprite: t.sprite, big: t.big, lvl, flash: 0,
               spells: t.spells || (t.spell ? [t.spell] : []),          // what it can cast
               status: {}, debuff: { str: 1, def: 1 },                  // battle effects on it
               weak: t.weak, resist: t.resist, turn: 0,                 // (a copy, because some tower monsters change theirs)
               hp: stat('hp'), mp: stat('mp'), str: stat('str'), def: stat('def'), int: stat('int'), mag: stat('mag'),
-              exp: Math.round(t.exp * Math.pow(lvl, 1.3) * boost),
-              gold: Math.round(t.gold * (1 + (lvl - 1) * 0.25) * boost) };
+              exp: Math.round(t.exp * Math.pow(lvl, 1.3) * boost * scaling('exp')),
+              gold: Math.round(t.gold * (1 + (lvl - 1) * 0.25) * boost * scaling('gold')) };
   e.maxhp = e.hp;
   return e;
 }
 
 // Battle stats. These work for heroes AND enemies.
 const weaponOf = h => WEAPONS[h.cls.weapon][h.weapon];
-const boosted = (h, key) => Math.min(statCap(), Math.round(maxStat(h, key) * (1 + h.buff[key] * BUFF_STEP)));   // stat with buffs
+const boosted = (h, key) => Math.min(statCap() + (h.bonus[key] || 0), Math.round(maxStat(h, key) * (1 + h.buff[key] * BUFF_STEP)));   // stat with buffs (same cap, plus tower points)
 const atkOf = u => u.isHero ? boosted(u, 'str') + weaponOf(u).atk : Math.round(u.str * u.debuff.str);
 const defOf = u => u.isHero ? boosted(u, 'def') + ARMORS[u.armor].def : Math.round(u.def * u.debuff.def);
 const magOf = u => u.isHero ? maxStat(u, 'mag') : u.mag;
@@ -513,7 +582,8 @@ function spellAmount(spell, caster) {
 }
 function spellDamage(spell, caster, target) {
   const resist = spell.uses === 'str' ? defOf(target) : intOf(target);  // DEF blocks skills, INT blocks magic
-  return Math.max(1, Math.round((spellAmount(spell, caster) - Math.floor(resist / 4)) * elementFactor(spell, target)));
+  const guard = target.defending ? 0.5 : 1;                             // Defend halves spells and skills, like plain attacks
+  return Math.max(1, Math.round((spellAmount(spell, caster) - Math.floor(resist / 4)) * elementFactor(spell, target) * guard));
 }
 // 1.5 if the target is weak to the spell's element, 0.5 if it resists it, otherwise 1
 function elementFactor(spell, target) {
@@ -558,7 +628,7 @@ function describeSpell(spell, caster) {
   if (spell.kind === 'damage') return `About ${amount} ${spell.element ? spell.element + ' ' : ''}damage to ${who}.` + (spell.inflict ? ' May poison.' : '');
   if (spell.kind === 'status') return `${spell.status === 'sleep' ? 'Puts' : 'Silences'} ${who}${spell.status === 'sleep' ? ' to sleep' : ''} (${Math.round(spell.chance * 100)}% chance).`;
   if (spell.kind === 'cure') return `Cures poison, sleep and silence for ${spell.target === 'party' ? 'the whole party' : 'one ally'}.`;
-  if (spell.kind === 'regen') return `One ally recovers HP every round for ${REGEN_ROUNDS} rounds.`;
+  if (spell.kind === 'regen') return `${spell.target === 'party' ? 'The whole party' : 'One ally'} recovers HP every round for ${spell.rounds || REGEN_ROUNDS} rounds.`;
   if (spell.kind === 'debuff') return `Lowers one enemy's ${spell.stat.toUpperCase()} by 30% for the whole battle.`;
   if (spell.kind === 'selfbuff') return `Raises ${caster.name}'s own ${BUFF_LABEL[spell.stat]} to the maximum.`;
   if (spell.kind === 'taunt') return `Enemies aim at ${caster.name} this round and the next.`;
@@ -641,6 +711,7 @@ function resetGame() {                 // a brand new game starts with this
   G.items.potion = 3; G.items.ether = 1;
   G.bag = newBag();      // spare weapons and armor
   G.ngPlus = 0;          // how many times the game has been finished and started over (New Game+)
+  G.difficulty = 'Normal';   // chosen at NEW GAME (see DIFFICULTIES)
   G.run = null;          // the Endless Tower run in progress, if any (see tower.js)
   G.tower = newTower();  // Endless Tower progress that is kept: best floor, checkpoint, relics, bosses beaten
   G.slot = null;         // which save slot this game was last saved to or loaded from

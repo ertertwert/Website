@@ -15,7 +15,8 @@
 
 const BATTLE_ROWS = 7;             // lines shown at once in the Spells / Abilities / Item lists (longer lists scroll)
 const STATUS_TAGS = { poison: ['Psn', '#9be36a'], sleep: ['Slp', '#b8c4ff'], silence: ['Sil', '#c8c8c8'], regen: ['Rgn', '#7dff9a'] };
-const short = hero => hero.name.slice(0, 3);            // "ART", "SOR", "RAY"
+const short = hero => hero.name.slice(0, 3);
+const aOrAn = name => (/^[AEIOU]/i.test(name) ? 'an ' : 'a ') + name;   // "a Potion", "an Ether"            // "ART", "SOR", "RAY"
 
 const Battle = {
   enemies: [], cmds: [], hero: -1, queue: [], msg: null, after: null, auto: false, timer: 0,
@@ -156,7 +157,8 @@ const Battle = {
     if (s.kind === 'status') return `Next: ${s.name}, may ${s.status === 'sleep' ? 'put ' + who + ' to sleep' : 'silence ' + who}`;
     const targets = it.target ? [it.target] : aliveHeroes();
     const avg = targets.reduce((sum, t) => sum + Math.max(1, spellBase(s, e) - Math.floor(intOf(t) / 4)), 0) / targets.length;
-    return `Next: ${s.name} on ${who}, about ${Math.round(avg)}${it.target ? '' : ' each'}`;
+    const side = { poison: ' (may poison)', silence: ' (may silence)', sleep: ' (may cause sleep)' }[s.inflict] || '';
+    return `Next: ${s.name} on ${who}, about ${Math.round(avg)}${it.target ? '' : ' each'}${side}`;
   },
 
   // ---------- 1. choosing commands ----------
@@ -404,6 +406,19 @@ const Battle = {
     if (!target.isHero) this.planIntent(target);
     return ` ${target.name} wakes up!`;
   },
+  // an attack that leaves an ailment behind (poison, silence or sleep); returns extra text
+  afflict(target, ailment) {
+    if (ailment === 'poison') return this.poison(target);
+    if (target.hp <= 0 || isBoss(target) || target.status[ailment]) return '';
+    if (ailment === 'silence') {
+      target.status.silence = SILENCE_ROUNDS;
+      if (!target.isHero && target.intent && target.intent.type === 'spell') target.intent = { type: 'attack', target: target.intent.target || pick(aliveHeroes()) };
+      return ` ${target.name} is silenced!`;
+    }
+    target.status.sleep = SLEEP_ROUNDS;
+    if (!target.isHero) target.intent = { type: 'sleep' };
+    return ` ${target.name} falls asleep!`;
+  },
   poison(target) {
     if (target.hp <= 0 || target.status.poison) return '';
     target.status.poison = true;
@@ -442,10 +457,11 @@ const Battle = {
     }
     if (s.kind === 'selfbuff') { a.buff[s.stat] = BUFF_MAX; return out + `${a.name}'s ${s.stat.toUpperCase()} soars to its limit!`; }
     if (s.kind === 'healself') return out + `${a.name} recovers ${healUnit(a, Math.ceil(maxHpOf(a) / 2))} HP.`;
-    if (s.kind === 'regen') {
-      if (!t || t.hp <= 0) return out + 'But it has no effect.';
-      t.status.regen = REGEN_ROUNDS;
-      return out + `${t.name} will recover HP every round.`;
+    if (s.kind === 'regen') {                            // one ally, or the whole party (Renewal)
+      const targets = s.target === 'party' ? friends : [t].filter(x => x && x.hp > 0);
+      if (!targets.length) return out + 'But it has no effect.';
+      for (const x of targets) x.status.regen = Math.max(x.status.regen || 0, s.rounds || REGEN_ROUNDS);   // never shortens a longer Regen
+      return out + (targets.length > 1 ? 'Everyone' : targets[0].name) + ' will recover HP every round.';
     }
     if (s.kind === 'cure') {
       const targets = s.target === 'party' ? friends : [t].filter(x => x && x.hp > 0);
@@ -495,7 +511,7 @@ const Battle = {
       if (factor > 1) text += ' A weak point!';
       if (factor < 1) text += ' It resists.';
       if (s.uses === 'str') text += this.wake(x);
-      if (s.inflict && Math.random() < 0.6) text += this.poison(x);
+      if (s.inflict && Math.random() < (s.chance || 0.6)) text += this.afflict(x, s.inflict);
       return text;
     }).join(' ');
   },
@@ -546,6 +562,13 @@ const Battle = {
     G.gold += gold;
     Sfx.play('victory');
     this.queue.push(() => `Victory! Everyone gains ${exp} EXP. Found ${gold} gold.`);
+    const drop = rollDrop(this.boss);                    // maybe the monsters left an item behind (see ITEM DROPS in data.js)
+    if (drop && G.items[drop] < MAX_ITEMS) {
+      G.items[drop]++;
+      this.queue.push(() => { Sfx.play('item'); return `The monsters dropped ${aOrAn(ITEMS[drop].name)}!`; });
+    } else if (drop) {                                   // no room: the item is lost (no second pick)
+      this.queue.push(() => `The monsters dropped ${aOrAn(ITEMS[drop].name)}, but you cannot carry any more.`);
+    }
     for (const h of aliveHeroes()) {                     // knocked-out heroes get no EXP
       for (const m of gainExp(h, exp)) this.queue.push(() => { Sfx.play('levelup'); return m; });
     }
