@@ -379,8 +379,8 @@ const BOSSES = {
 };
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
-const ENDLESS_BOOST = 0.01;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.15;
+const ENDLESS_BOOST = 0.02;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
+const NG_PLUS_BOOST = 0.2;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
@@ -524,8 +524,8 @@ function rollDrop(boss) {
 // =====================================================================
 const SCALING = {
   first: { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
-  plus:  { hp: 1.3, attack: 1.1, magic: 1.1, defense: 1, exp: 1, gold: 1 },
-  tower: { hp: 1, attack: 1, magic: 1, defense: 1, exp: 1, gold: 1 },
+  plus:  { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
+  tower: { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
 };
 // DIFFICULTY: chosen when a new game starts and kept with the save. It multiplies the set above.
 // (Add a line to offer another choice, e.g.  Brutal: { hp: 2, attack: 1.5, ... })
