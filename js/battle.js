@@ -564,11 +564,9 @@ const Battle = {
     Sfx.play('victory');
     this.queue.push(() => `Victory! Everyone gains ${exp} EXP. Found ${gold} gold.`);
     const drop = rollDrop(this.boss);                    // maybe the monsters left an item behind (see ITEM DROPS in data.js)
-    if (drop && G.items[drop] < MAX_ITEMS) {
-      G.items[drop]++;
-      this.queue.push(() => { Sfx.play('item'); return `The monsters dropped ${aOrAn(ITEMS[drop].name)}!`; });
-    } else if (drop) {                                   // no room: the item is lost (no second pick)
-      this.queue.push(() => `The monsters dropped ${aOrAn(ITEMS[drop].name)}, but you cannot carry any more.`);
+    if (drop) {                                          // no room for it? it is used at once if somebody needs it, else lost
+      const got = gainItem(drop), text = `The monsters dropped ${aOrAn(ITEMS[drop].name)}!` + spareItemText(got);
+      this.queue.push(() => { Sfx.play('item'); return text; });
     }
     for (const h of aliveHeroes()) {                     // knocked-out heroes get no EXP
       for (const m of gainExp(h, exp)) this.queue.push(() => { Sfx.play('levelup'); return m; });

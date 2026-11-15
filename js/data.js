@@ -68,7 +68,7 @@ const SPELLS = {
   thunder:  { name: 'Thunder',   mp: 12, kind: 'damage', target: 'allEnemies', power: 20,  scale: 0.7, element: 'bolt' },
   fullheal: { name: 'Full Heal', mp: 14, kind: 'heal',   target: 'ally',       power: 255, scale: 1.0 },
   warp:     { name: 'Warp',      mp: 8,  kind: 'warp',   target: 'none' },
-  massheal: { name: 'Mass Heal', mp: 18, kind: 'heal',   target: 'party',      power: 40,  scale: 1.0 },
+  massheal: { name: 'Full Heal', mp: 18, kind: 'heal',   target: 'party',      power: 40,  scale: 1.0 },
   raise:    { name: 'Raise',     mp: 14, kind: 'revive', target: 'ally' },
   nova:     { name: 'Nova',      mp: 30, kind: 'damage', target: 'allEnemies', power: 70,  scale: 1.3 },
   // RAYEN's strongest attack: one enemy, no element (so nothing resists it), harder than Nova hits each of its targets
@@ -380,7 +380,7 @@ const BOSSES = {
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
 const ENDLESS_BOOST = 0.03;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.25;
+const NG_PLUS_BOOST = 0.3;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
@@ -722,6 +722,41 @@ resetGame();
 const aliveHeroes = () => G.party.filter(h => h.hp > 0);
 const avgLevel = () => Math.round(G.party.reduce((s, h) => s + h.lvl, 0) / G.party.length);
 function fullHeal() { for (const h of G.party) { h.hp = maxStat(h, 'hp'); h.mp = maxStat(h, 'mp'); } }
+
+// GETTING ITEMS (chests, battle drops, tower rewards): put n of an item into the pack.
+// What does not fit (MAX_ITEMS) is not thrown away at once: each spare one is used on the spot
+// on the hero who needs it most. Only if nobody needs it is it left behind.
+// Returns { kept: how many went into the pack, used: [messages], lost: how many were left behind }.
+function gainItem(id, n = 1) {
+  const kept = Math.min(n, Math.max(0, MAX_ITEMS - G.items[id]));
+  G.items[id] += kept;
+  const used = [];
+  let lost = 0;
+  for (let i = kept; i < n; i++) {
+    const hero = neediestHero(id);
+    G.items[id]++;                                    // (useItem takes it out of the pack again when it works)
+    const msg = hero ? useItem(id, hero) : null;
+    if (msg) used.push(msg); else { G.items[id]--; lost++; }
+  }
+  return { kept, used, lost };
+}
+// Who should get a spare item? A fallen hero for a Phoenix Leaf; otherwise the living hero who is
+// missing the biggest share of what the item restores. null = nobody needs it (or it is not that kind of item).
+function neediestHero(id) {
+  const it = ITEMS[id];
+  if (it.revive) return G.party.find(h => h.hp <= 0) || null;
+  if (!it.hp && !it.mp) return null;                  // Remedies and Ward Charms are never used this way
+  const missing = h => (it.hp ? 1 - h.hp / maxStat(h, 'hp') : 0) + (it.mp ? 1 - h.mp / maxStat(h, 'mp') : 0);
+  const needy = aliveHeroes().filter(h => missing(h) > 0).sort((a, b) => missing(b) - missing(a));
+  return needy[0] || null;
+}
+// The sentence that tells the player what happened to the spare ones ('' when everything fitted).
+function spareItemText(got) {
+  let text = '';
+  if (got.used.length) text += ` There's no room, so ${got.used.length === 1 ? 'it is' : 'they are'} used at once: ${got.used.join(' ')}`;
+  if (got.lost) text += ` ${got.lost === 1 ? 'One' : got.lost} had to be left behind (you can only carry ${MAX_ITEMS}).`;
+  return text;
+}
 
 // Use an item on a hero. Returns a message, or null if it would do nothing
 // (in that case the item is NOT used up).

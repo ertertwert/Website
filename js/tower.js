@@ -142,7 +142,7 @@ function chooseBoon(title, then) {
     { label: 'Head start: DEF', desc: 'Begin every battle with one Guard Up already cast.', apply: () => { run.startBuff.def = Math.min(BUFF_MAX, (run.startBuff.def || 0) + 1); } },
     { label: 'Head start: STR', desc: 'Begin every battle with one Power Up already cast.', apply: () => { run.startBuff.str = Math.min(BUFF_MAX, (run.startBuff.str || 0) + 1); } },
     { label: 'Wisdom', desc: '+25% EXP from every battle until this run ends.', apply: () => { run.expBonus += 0.25; } },
-    { label: 'Supplies', desc: 'Two Elixirs. Yours to keep.', apply: () => { G.items.elixir = Math.min(MAX_ITEMS, G.items.elixir + 2); } },
+    { label: 'Supplies', desc: 'Two Elixirs. Yours to keep.', apply: () => { gainItem('elixir', 2); } },
     { label: `Treasure: ${500 * floor} gold`, desc: 'Gold. Yours to keep.', apply: () => { G.gold += 500 * floor; } },
   ];
   const offers = pool.sort(() => Math.random() - 0.5).slice(0, 3);
@@ -202,9 +202,10 @@ function mimicFight(map, x, y) {
       noteRecord(r => { r.mimics++; });
       payMimicPoints();                                           // permanent: every stat of every hero goes up
       const gold = 1000 * floor;
-      G.gold += gold; G.items.elixir = Math.min(MAX_ITEMS, G.items.elixir + 2);
+      G.gold += gold;
+      const got = gainItem('elixir', 2);
       Sfx.play('chest');
-      UI.say([`Inside the Mimic: ${gold} gold and 2 Elixirs!`,
+      UI.say([`Inside the Mimic: ${gold} gold and 2 Elixirs!` + spareItemText(got),
               `Its strength passes to the heroes: +${TOWER_MIMIC_POINTS} to EVERY stat of every hero, forever.`,
               'And something more: its hoard holds a boon.'],
              () => chooseBoon("The Mimic's hoard: choose a boon", () => {}));

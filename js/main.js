@@ -363,9 +363,8 @@ function giveLoot(loot, intro, done) {
   const say = text => UI.say(intro + text, done);
   if (loot.gold) { G.gold += loot.gold; return say(`Found ${loot.gold} gold!`); }
   if (loot.item) {
-    const room = Math.max(0, MAX_ITEMS - G.items[loot.item]), kept = Math.min(loot.n, room);
-    G.items[loot.item] += kept;
-    return say(`Found ${loot.n} x ${ITEMS[loot.item].name}!` + (kept < loot.n ? ` But you can only carry ${MAX_ITEMS}, so ${loot.n - kept} had to be left behind.` : ''));
+    const got = gainItem(loot.item, loot.n);            // what does not fit is used on whoever needs it (data.js)
+    return say(`Found ${loot.n} x ${ITEMS[loot.item].name}!` + spareItemText(got));
   }
 
   const toBag = (pocket, tier, gear) => { addToBag(pocket, tier); return `It goes into the bag.`; };
@@ -735,7 +734,7 @@ function fieldItems(cur = 0) {
   UI.openMenu({ x: 124, y: 8, items, cur });
 }
 
-// Outside of battle you can cast healing spells and Warp.
+// Outside of battle you can cast healing spells and Warp (not Raise: nobody is ever down outside a battle).
 // After a healing spell the same spell stays selected with the "On whom?" list open,
 // so you can heal several heroes in a row (until the caster runs out of MP).
 function fieldMagic(cur = 0) {
@@ -752,7 +751,7 @@ function fieldMagic(cur = 0) {
         });
         continue;
       }
-      if (s.kind !== 'heal' && s.kind !== 'revive') continue;
+      if (s.kind !== 'heal') continue;                    // (no Raise here: a fallen hero is always back on their feet after a battle)
       const done = (msg, line) => {
         Sfx.play('heal');
         UI.pop();                                           // close this list...
