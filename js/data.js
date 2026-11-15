@@ -754,7 +754,7 @@ function neediestHero(id) {
 function spareItemText(got) {
   let text = '';
   if (got.used.length) text += ` There's no room, so ${got.used.length === 1 ? 'it is' : 'they are'} used at once: ${got.used.join(' ')}`;
-  if (got.lost) text += ` ${got.lost === 1 ? 'One' : got.lost} had to be left behind (you can only carry ${MAX_ITEMS}).`;
+//  if (got.lost) text += ` ${got.lost === 1 ? 'One' : got.lost} had to be left behind (you can only carry ${MAX_ITEMS}).`;
   return text;
 }
 
