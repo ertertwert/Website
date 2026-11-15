@@ -31,15 +31,28 @@ const held = {};                      // which actions are held down right now
 let ctrlHeld = false;                 // while Ctrl is down the arrow keys do nothing, so Ctrl+S does not walk you downwards
 let bulkKey = false;                  // is Shift or Ctrl held right now? (item shops: buy 10 at once)
 
+// START IN FULL SCREEN: a web page is not allowed to go full screen by itself - the browser only
+// permits it as the answer to a key press or a click. So the game does it on the FIRST key or click
+// after the page opens (Options > "Start in full screen" turns this off).
+let fullScreenAsked = false;
+function autoFullScreen() {           // returns true if it asked just now
+  if (fullScreenAsked) return false;
+  fullScreenAsked = true;
+  if (!settings.startFull || document.fullscreenElement) return false;
+  document.documentElement.requestFullscreen().catch(() => { fullScreenAsked = false; });   // refused: try again on the next key or click
+  return true;
+}
+
 addEventListener('keydown', e => {
   Sfx.unlock(); Music.unlock();       // browsers only allow sound after a key press
+  const wentFull = !['Escape', 'Tab', 'ControlLeft', 'ControlRight', 'ShiftLeft', 'ShiftRight', 'AltLeft', 'AltRight', 'MetaLeft', 'MetaRight'].includes(e.code) && autoFullScreen();
   bulkKey = e.shiftKey || e.ctrlKey;
   ctrlHeld = e.ctrlKey;
   if (e.ctrlKey && e.code === 'KeyS') { e.preventDefault(); if (!e.repeat) quickSave(); return; }   // Ctrl+S: quick save
   if (e.code === 'KeyM' && !e.repeat) toggleMute();
   if (e.code === 'Tab') { e.preventDefault(); if (!e.repeat) toggleWorldMap(); return; }
   if (!e.repeat && !e.ctrlKey && !e.altKey) {                    // display shortcuts
-    if (e.code === 'KeyF') { if (mode === 'battle') Battle.favKey(); else toggleFullScreen(); }   // in battle F is the favorite key
+    if (e.code === 'KeyF') { if (mode === 'battle') Battle.favKey(); else if (!wentFull) toggleFullScreen(); }   // in battle F is the favorite key
     if (e.code === 'KeyC') toggleScanlines();
     if (e.code === 'KeyV') nextScreenSize();
   }
@@ -99,6 +112,7 @@ canvas.addEventListener('mousedown', e => {
   e.preventDefault();
   bulkKey = e.shiftKey || e.ctrlKey;
   Sfx.unlock(); Music.unlock();
+  autoFullScreen();                   // the first click also takes the game to full screen
   const m = mousePos(e);
   if (e.button === 2) return doAction('cancel');
   if (e.button !== 0) return;
@@ -1243,7 +1257,7 @@ const SCREEN_SIZES = [                 // [name, zoom]  (zoom = screen pixels pe
   ['960 x 720', 3],
   ['1280 x 960', 4],
 ];
-const settings = { size: 0, scanlines: false, titleMusic: 'Town' };
+const settings = { size: 0, scanlines: false, titleMusic: 'Town', startFull: true };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(SETTINGS_KEY))); } catch (e) { /* no settings yet */ }
 if (!SCREEN_SIZES[settings.size]) settings.size = 0;
 Music.titleTrack = settings.titleMusic;
@@ -1303,6 +1317,8 @@ function optionsMenu() {
         desc: 'Key: V.  Always a whole-number zoom, so it stays sharp.' },
       { label: 'Full screen', right: () => document.fullscreenElement ? 'ON' : 'OFF', pick: toggleFullScreen,
         desc: 'Key: F.  The biggest sharp zoom your monitor can show.' },
+      { label: 'Start in full screen', right: () => settings.startFull ? 'ON' : 'OFF', pick: () => { settings.startFull = !settings.startFull; applySettings(); },
+        desc: 'Go full screen at the first key press or click after opening the game.' },
       { label: 'Scan lines', right: () => settings.scanlines ? 'ON' : 'OFF', pick: toggleScanlines,
         desc: 'Key: C.  CRT television screen emulation.' },
       { label: 'Sound and music', right: () => Music.muted ? 'OFF' : 'ON', pick: toggleMute, desc: 'Key: M. Toggle on and off.' },
