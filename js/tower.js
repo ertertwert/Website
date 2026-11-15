@@ -112,7 +112,8 @@ function nextEndlessFloor() {
   if (stall) map.npcs.push({ x: stall[0], y: stall[1], name: 'Trader', sprite: 'npcElder', onBump: () => towerTrader() });
 
   // a Mimic in the chest? a twist on the floor? (never on boss floors)
-  const lucky = seededRandom(run.seed + floor * 31);
+  // (plain Math.random: each floor is rolled on its own, so Mimics and twists are spread evenly through a climb)
+  const lucky = Math.random;
   map.mimic = !guardian && floor >= TOWER_MIMIC_FROM && made.chests.length && lucky() < TOWER_MIMIC_CHANCE ? made.chests[0].join(',') : null;
   run.twist = !guardian && floor >= 3 && lucky() < TOWER_TWIST_CHANCE ? TWISTS[Math.floor(lucky() * TWISTS.length)] : null;
   run.traded = {};                                                // what has been bought from this floor's trader
