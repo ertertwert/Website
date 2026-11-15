@@ -90,7 +90,7 @@ const SPELLS = {
   arrowstorm: { name: 'Arrow Storm', mp: 40, kind: 'damage', target: 'allEnemies', uses: 'str', power: 8, scale: 0.7, hits: 4 },
   // ARTUROS - the weakest spells, but strong sword skills later on
   spark:    { name: 'Spark',     mp: 2,  kind: 'damage', target: 'enemy',      power: 20,   scale: 0.4, element: 'bolt' },
-  firstaid: { name: 'First Aid', mp: 3,  kind: 'heal',   target: 'ally',       power: 10,  scale: 0.4 },
+  firstaid: { name: 'First Aid', mp: 3,  kind: 'heal',   target: 'ally',       power: 10,  scale: 0.6 },
   flameedge:{ name: 'Flame Edge',mp: 5,  kind: 'damage', target: 'enemy',      power: 30,  scale: 0.6, element: 'fire' },
   powerslash:   { name: 'Power Slash',   mp: 4,  kind: 'damage', target: 'enemy',      uses: 'str', power: 5,  scale: 0.65 },
   whirlwind:    { name: 'Whirlwind',     mp: 8,  kind: 'damage', target: 'allEnemies', uses: 'str', power: 0,  scale: 0.5 },
