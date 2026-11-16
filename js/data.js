@@ -33,7 +33,7 @@ const HERO_DEFS = {
     base: { hp: 32, mp: 12, str: 9,  def: 7,  int: 8,  mag: 7 },
     max:  { hp: 230, mp: 190, str: 200, def: 180, int: 180, mag: 170 },
     spells: [[2, 'guardup'], [4, 'powerup'], [5, 'windshot'], [8, 'mend'], [12, 'gale'], [16, 'healall'],
-             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [45, 'massheal'], [55, 'arrowstorm'], [70, 'renewal']],
+             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [42, 'massheal'], [48, 'arrowstorm'], [52, 'renewal']],
     choices: [[6, 'lullaby', 'venomshot'], [14, 'hush', 'icearrow'], [24, 'masslullaby', 'boltarrow'], [34, 'weaken', 'expose']],
   },
   rayen: {
@@ -42,7 +42,7 @@ const HERO_DEFS = {
     max:  { hp: 200, mp: 255, str: 120, def: 140, int: 255, mag: 255 },
     spells: [[1, 'heal'], [2, 'fire'], [4, 'blaze'], [5, 'frost'], [6, 'healall'], [8, 'purify'], [9, 'healmore'],
              [13, 'thunder'], [24, 'meteor'], [28, 'massheal'], //[18, 'fullheal']
-             [32, 'raise'], [38, 'nova'], [55, 'singularity'], [10, 'warp']],
+             [32, 'raise'], [38, 'nova'], [48, 'singularity'], [10, 'warp']],
     choices: [[7, 'bolt', 'regen'], [15, 'blizzard', 'purifyall'], [26, 'fireball', 'osmose'], [36, 'icestorm', 'massraise']],
   },
 };
@@ -531,7 +531,7 @@ const SCALING = {
 // (Add a line to offer another choice, e.g.  Brutal: { hp: 2, attack: 1.5, ... })
 const DIFFICULTIES = {
   Normal: { hp: 1,   attack: 1,    magic: 1,    defense: 1, exp: 1, gold: 1, desc: 'The game as designed.' },
-  Hard:   { hp: 1.4, attack: 1.25, magic: 1.25, defense: 1, exp: 1, gold: 1, desc: 'Monsters have 40% more HP and hit 25% harder.' },
+  Hard:   { hp: 1.2, attack: 1.2, magic: 1.2, defense: 1, exp: 1, gold: 1, desc: 'Monsters have more HP and hit harder.' },
 };
 // which knob belongs to which monster stat
 const KNOB_OF = { hp: 'hp', str: 'attack', mag: 'magic', def: 'defense', int: 'defense' };
