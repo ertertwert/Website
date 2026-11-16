@@ -1322,7 +1322,7 @@ function optionsMenu() {
       { label: 'Full screen', right: () => document.fullscreenElement ? 'ON' : 'OFF', pick: toggleFullScreen,
         desc: 'Key: F.  The biggest sharp zoom your monitor can show.' },
       { label: 'Start in full screen', right: () => settings.startFull ? 'ON' : 'OFF', pick: () => { settings.startFull = !settings.startFull; applySettings(); },
-        desc: 'Go full screen at the first key press or click after opening the game.' },
+        desc: 'Go full screen at the first key press or click after opening.' },
       { label: 'Scan lines', right: () => settings.scanlines ? 'ON' : 'OFF', pick: toggleScanlines,
         desc: 'Key: C.  CRT television screen emulation.' },
       { label: 'Sound and music', right: () => Music.muted ? 'OFF' : 'ON', pick: toggleMute, desc: 'Key: M. Toggle on and off.' },
