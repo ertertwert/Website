@@ -24,7 +24,7 @@ const MOVE_TIME = 0.16;               // seconds to walk one tile
 const KEYMAP = {
   ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down',
   ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-  KeyZ: 'ok', Enter: 'ok', Space: 'ok', KeyX: 'cancel', Escape: 'cancel',
+  KeyZ: 'ok', Enter: 'ok', Space: 'ok', KeyX: 'cancel', Escape: 'cancel', Backspace: 'cancel',
 };
 const held = {};                      // which actions are held down right now
 
@@ -1310,6 +1310,16 @@ function toggleFullScreen() {
 }
 let crtShade = null;                  // the dark-corners picture for the CRT look (remade when the size changes)
 document.addEventListener('fullscreenchange', applySettings);
+// ESC IN FULL SCREEN: a browser normally uses Esc to LEAVE full screen, which is a nuisance because Esc
+// is also this game's cancel key (and the B button of a Steam Deck is usually set to send Esc).
+// Chrome and Edge let a full-screen page ask for the Esc key ("keyboard lock"): then a tap on Esc
+// reaches the game as "cancel", and HOLDING Esc for two seconds still leaves full screen.
+// Browsers without this feature (Firefox, Safari) simply behave as before.
+document.addEventListener('fullscreenchange', () => {
+  if (!navigator.keyboard || !navigator.keyboard.lock) return;
+  if (document.fullscreenElement) navigator.keyboard.lock(['Escape']).catch(() => {});
+  else navigator.keyboard.unlock();
+});
 addEventListener('resize', applySettings);
 applySettings();
 
