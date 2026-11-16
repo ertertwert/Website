@@ -114,7 +114,7 @@ const SPELLS = {
   venomshot:  { name: 'Venom Shot',  mp: 4,  kind: 'damage', target: 'enemy',      uses: 'str', power: 4,  scale: 0.6, inflict: 'poison' },
   hush:       { name: 'Hush',        mp: 4,  kind: 'status', target: 'enemy',      status: 'silence', chance: 0.8 },
   icearrow:   { name: 'Ice Arrow',   mp: 5,  kind: 'damage', target: 'enemy',      power: 14, scale: 0.7,  element: 'ice' },
-  masslullaby:{ name: 'Slumber',mp: 12, kind: 'status', target: 'allEnemies', status: 'sleep',   chance: 0.5 },
+  masslullaby:{ name: 'Sleep',mp: 12, kind: 'status', target: 'allEnemies', status: 'sleep',   chance: 0.5 },
   boltarrow:  { name: 'Bolt Arrow',  mp: 9,  kind: 'damage', target: 'enemy',      power: 30, scale: 1.0,  element: 'bolt' },
   weaken:     { name: 'Weaken',      mp: 6,  kind: 'debuff', target: 'enemy',      stat: 'str' },
   expose:     { name: 'Expose',      mp: 6,  kind: 'debuff', target: 'enemy',      stat: 'def' },

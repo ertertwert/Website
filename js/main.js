@@ -844,10 +844,14 @@ function drawStatus() {
     drawText(`HP ${h.hp}/${maxStat(h, 'hp')}   MP ${h.mp}/${maxStat(h, 'mp')}`, 16, y += 10);
     drawText(['str', 'def', 'int', 'mag'].map(k => `${k.toUpperCase()} ${maxStat(h, k)}`).join('   '), 16, y += 10);
     drawText(`${weaponOf(h).name} (ATK+${weaponOf(h).atk})   ${ARMORS[h.armor].name} (DEF+${ARMORS[h.armor].def})`, 16, y += 10, '#b8c4ff');
-    const names = list => list.map(id => SPELLS[id].name).join(', ') || 'No Spells';
-    const lines = [...wrapText(names(knownMagic(h)), 288).map(t => [t, '#9fd0ff']), // 'Spells: ' + 
-                   ...(knownAbilities(h).length ? wrapText(names(knownAbilities(h)), 292).map(t => [t, '#ffd9a0']) : [])]; // 'Abilities: ' + 
-    lines.slice(0, 3).forEach(([t, color], n) => drawText(n === 2 && lines.length > 3 ? t + ' ...' : t, 16, y += 10, color));
+    // Spells first (blue), then Abilities (orange). A hero with none of one kind simply has no line for it,
+    // so ARTUROS's abilities start on the first line.
+    const names = list => list.map(id => SPELLS[id].name).join(', ');
+    const block = (list, width, color) => list.length ? wrapText(names(list), width).map(t => [t, color]) : [];
+    const lines = [...block(knownMagic(h), 288, '#9fd0ff'), ...block(knownAbilities(h), 292, '#ffd9a0')];
+    // only three lines fit: if there is more, the third line ends in "..." (shortened so the dots stay inside the box)
+    const cut = t => { while (textWidth(t + ' ...') > 284 && t.includes(' ')) t = t.slice(0, t.lastIndexOf(' ')); return t + ' ...'; };
+    lines.slice(0, 3).forEach(([t, color], n) => drawText(n === 2 && lines.length > 3 ? cut(t) : t, 16, y += 10, color));
   });
 }
 
