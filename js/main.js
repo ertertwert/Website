@@ -844,9 +844,9 @@ function drawStatus() {
     drawText(`HP ${h.hp}/${maxStat(h, 'hp')}   MP ${h.mp}/${maxStat(h, 'mp')}`, 16, y += 10);
     drawText(['str', 'def', 'int', 'mag'].map(k => `${k.toUpperCase()} ${maxStat(h, k)}`).join('   '), 16, y += 10);
     drawText(`${weaponOf(h).name} (ATK+${weaponOf(h).atk})   ${ARMORS[h.armor].name} (DEF+${ARMORS[h.armor].def})`, 16, y += 10, '#b8c4ff');
-    const names = list => list.map(id => SPELLS[id].name).join(', ') || 'none yet';
+    const names = list => list.map(id => SPELLS[id].name).join(', ') || 'No Spells';
     const lines = [...wrapText(names(knownMagic(h)), 288).map(t => [t, '#9fd0ff']), // 'Spells: ' + 
-                   ...(knownAbilities(h).length ? wrapText(names(knownAbilities(h)), 289).map(t => [t, '#ffd9a0']) : [])]; // 'Abilities: ' + 
+                   ...(knownAbilities(h).length ? wrapText(names(knownAbilities(h)), 292).map(t => [t, '#ffd9a0']) : [])]; // 'Abilities: ' + 
     lines.slice(0, 3).forEach(([t, color], n) => drawText(n === 2 && lines.length > 3 ? t + ' ...' : t, 16, y += 10, color));
   });
 }

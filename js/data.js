@@ -23,17 +23,17 @@ const HERO_DEFS = {
     name: 'ARTUROS', weapon: 'sword',
     base: { hp: 40, mp: 6,  str: 12, def: 10, int: 4,  mag: 4 },
     max:  { hp: 255, mp: 120, str: 255, def: 230, int: 110, mag: 110 },
-    spells: [[3, 'spark'], [6, 'firstaid'], [10, 'flameedge'], [14, 'powerslash'], [16, 'guardup'], [20, 'powerup'],
-             [24, 'whirlwind'], [30, 'thunderblade'], [40, 'dragonslayer'], [48, 'bladestorm']],
+    spells: [[4, 'powerslash'], [6, 'guardup'], [10, 'powerup'], // [3, 'spark'], [6, 'firstaid'], [10, 'flameedge']
+             [12, 'whirlwind'], [22, 'thunderblade'], [33, 'dragonslayer'], [40, 'bladestorm']],
     // at these levels you pick ONE of two abilities: [level, option A, option B]
-    choices: [[8, 'cleave', 'taunt'], [18, 'venomblade', 'bulwark'], [28, 'frostedge', 'galeslash'], [36, 'berserk', 'secondwind']],
+    choices: [[8, 'cleave', 'taunt'], [18, 'venomblade', 'bulwark'], [28, 'frostedge', 'galeslash'], [36, 'berserk', 'secondwind']]
   },
   sorutra: {
     name: 'SORUTRA', weapon: 'bow',
     base: { hp: 32, mp: 12, str: 9,  def: 7,  int: 8,  mag: 7 },
     max:  { hp: 230, mp: 190, str: 200, def: 180, int: 180, mag: 170 },
     spells: [[2, 'guardup'], [4, 'powerup'], [5, 'windshot'], [8, 'mend'], [12, 'gale'], [16, 'healall'],
-             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [42, 'massheal'], [48, 'arrowstorm'], [52, 'renewal']],
+             [22, 'cyclone'], [27, 'mendmore'], [32, 'barrier'], [38, 'tempest'], [42, 'massheal'], [44, 'arrowstorm'], [48, 'renewal']],
     choices: [[6, 'lullaby', 'venomshot'], [14, 'hush', 'icearrow'], [24, 'masslullaby', 'boltarrow'], [34, 'weaken', 'expose']],
   },
   rayen: {
@@ -108,13 +108,13 @@ const SPELLS = {
   fireball:   { name: 'Fireball',    mp: 16, kind: 'damage', target: 'enemy',      power: 40, scale: 1.3,  element: 'fire' },
   osmose:     { name: 'Osmose',      mp: 0,  kind: 'osmose', target: 'enemy' },
   icestorm:   { name: 'Ice Storm',   mp: 26, kind: 'damage', target: 'allEnemies', power: 60, scale: 1.2,  element: 'ice' },
-  massraise:  { name: 'Mass Raise',  mp: 30, kind: 'revive', target: 'party' },
+  massraise:  { name: 'Arise',  mp: 30, kind: 'revive', target: 'party' },
   // SORUTRA
   lullaby:    { name: 'Lullaby',     mp: 4,  kind: 'status', target: 'enemy',      status: 'sleep',   chance: 0.75 },
   venomshot:  { name: 'Venom Shot',  mp: 4,  kind: 'damage', target: 'enemy',      uses: 'str', power: 4,  scale: 0.6, inflict: 'poison' },
   hush:       { name: 'Hush',        mp: 4,  kind: 'status', target: 'enemy',      status: 'silence', chance: 0.8 },
   icearrow:   { name: 'Ice Arrow',   mp: 5,  kind: 'damage', target: 'enemy',      power: 14, scale: 0.7,  element: 'ice' },
-  masslullaby:{ name: 'Slumber Song',mp: 12, kind: 'status', target: 'allEnemies', status: 'sleep',   chance: 0.5 },
+  masslullaby:{ name: 'Slumber',mp: 12, kind: 'status', target: 'allEnemies', status: 'sleep',   chance: 0.5 },
   boltarrow:  { name: 'Bolt Arrow',  mp: 9,  kind: 'damage', target: 'enemy',      power: 30, scale: 1.0,  element: 'bolt' },
   weaken:     { name: 'Weaken',      mp: 6,  kind: 'debuff', target: 'enemy',      stat: 'str' },
   expose:     { name: 'Expose',      mp: 6,  kind: 'debuff', target: 'enemy',      stat: 'def' },
@@ -531,7 +531,8 @@ const SCALING = {
 // (Add a line to offer another choice, e.g.  Brutal: { hp: 2, attack: 1.5, ... })
 const DIFFICULTIES = {
   Normal: { hp: 1,   attack: 1,    magic: 1,    defense: 1, exp: 1, gold: 1, desc: 'The game as designed.' },
-  Hard:   { hp: 1.2, attack: 1.2, magic: 1.2, defense: 1, exp: 1, gold: 1, desc: 'Monsters have more HP and hit harder.' },
+  Hard:   { hp: 1.25, attack: 1.25, magic: 1.25, defense: 1, exp: 1.25, gold: 1.25, desc: 'Monsters have 25% more HP, hit harder and give more rewards.' },
+  Brutal: { hp: 1.5, attack: 1.25, magic: 1.25, defense: 1, exp: 1.25, gold: 1.25, desc: 'Monsters have 50% more HP, hit harder and give more rewards.' },
 };
 // which knob belongs to which monster stat
 const KNOB_OF = { hp: 'hp', str: 'attack', mag: 'magic', def: 'defense', int: 'defense' };

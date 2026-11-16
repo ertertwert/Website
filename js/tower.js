@@ -275,7 +275,7 @@ function drawTowerRecords() {
   let y = 14;
   const line = (text, color = '#fff', x = 16) => { drawText(text, x, y, color); y += 11; };
   line('THE ENDLESS TOWER', '#ffd75e');
-  line(`Current Game:  Best Floor ${t.best}         Checkpoint: Floor ${t.checkpoint ? t.checkpoint + 1 : 1}`);
+  line(`Current Game: Best Floor ${t.best}          Checkpoint: Floor ${t.checkpoint ? t.checkpoint + 1 : 1}`);
   line(`Permanent Bonus: +${t.points} to all stats    Mimics Beaten: ${t.mimics}`);
   y += 3; line('BOSSES BEATEN', '#ffd75e');
   TOWER_BOSSES.forEach((b, i) => line(`Floor ${(i + 1) * 10}+   ${b.name}`.padEnd(30) + `x ${t.kills[b.relic] || 0}`));
