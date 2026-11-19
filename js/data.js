@@ -380,7 +380,7 @@ const BOSSES = {
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
 const ENDLESS_BOOST = 0.02;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.15;
+const NG_PLUS_BOOST = 0.25;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
@@ -416,7 +416,7 @@ const richChests = map => G.ngPlus > 0 && map.name !== 'endless';
 // ---------------------------------------------------------------------
 const ELEMENTS = ['fire', 'ice', 'bolt', 'wind'];
 const TOWER_STAT_POINTS = floor => floor / 10;     // beating the boss of floor 10, 20, 30... adds this to EVERY stat of every hero, for ever
-const TOWER_START_BOONS = start => Math.floor(start / 5);   // boons handed out when a run starts higher up (floor 11 -> 2, floor 21 -> 4)
+const TOWER_START_BOONS = start => Math.floor(start / 3.3);   // boons handed out when a run starts higher up (floor 11 -> 2, floor 21 -> 4)
 const TOWER_TWIST_CHANCE = 0.3;        // how often an ordinary floor has a twist (a special rule)
 const TOWER_MIMIC_CHANCE = 0.2;        // how often the chest of an ordinary floor is a Mimic
 const TOWER_MIMIC_FROM = 4;            // no Mimics below this floor
