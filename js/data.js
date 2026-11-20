@@ -416,7 +416,7 @@ const richChests = map => G.ngPlus > 0 && map.name !== 'endless';
 // ---------------------------------------------------------------------
 const ELEMENTS = ['fire', 'ice', 'bolt', 'wind'];
 const TOWER_STAT_POINTS = floor => floor / 10;     // beating the boss of floor 10, 20, 30... adds this to EVERY stat of every hero, for ever
-const TOWER_START_BOONS = start => Math.floor(start / 2);   // boons handed out when a run starts higher up (floor 11 -> 2, floor 21 -> 4)
+const TOWER_START_BOONS = start => Math.floor(start / 3.333);   // boons handed out when a run starts higher up (floor 11 -> 2, floor 21 -> 4)
 const TOWER_TWIST_CHANCE = 0.3;        // how often an ordinary floor has a twist (a special rule)
 const TOWER_MIMIC_CHANCE = 0.2;        // how often the chest of an ordinary floor is a Mimic
 const TOWER_MIMIC_FROM = 4;            // no Mimics below this floor
