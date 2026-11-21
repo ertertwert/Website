@@ -20,7 +20,7 @@ const Music = {
   volume: 1,
   muted: false,
   place: null,          // 'Town', 'World', 'Battle', 'Dungeon', 'Boss', 'Title' or null (silence)
-  places: ['Town', 'World', 'Battle', 'Dungeon', 'Boss', 'Tower', 'TowerBoss'],     // the names the music files start with
+  places: ['Town', 'World', 'Battle', 'Dungeon', 'Boss', 'Tower', 'TowerBoss', 'Reef', 'ReefBoss'],     // the names the music files start with
   // What plays on the TITLE SCREEN (chosen under Options > Title music):
   //   'Random'   any track of the whole game
   //   'Town'     any Town track  (or 'World', 'Battle', 'Dungeon', 'Boss')
@@ -33,10 +33,10 @@ const Music = {
   loaded: {},           // every track we have opened so far
   // A place with no files of its own borrows another place's music.
   // (Tower = the Endless Tower's floors, TowerBoss = its own bosses; with no such files they use Dungeon and Boss music)
-  fallback: { Dungeon: 'World', Boss: 'Battle', Tower: 'Dungeon', TowerBoss: 'Boss' },
+  fallback: { Dungeon: 'World', Boss: 'Battle', Tower: 'Dungeon', TowerBoss: 'Boss', Reef: 'Dungeon', ReefBoss: 'Boss' },   // (Reef = the Coral Deep)
   counting: {},         // how many tracks each place has (worked out the first time it is needed)
   fadeSeconds: 3.5,     // how long the music takes to fade out after a battle
-  fadeAfter: ['Battle', 'Boss', 'TowerBoss'],   // leaving these places fades the music out; everything else switches at once
+  fadeAfter: ['Battle', 'Boss', 'TowerBoss', 'ReefBoss'],   // leaving these places fades the music out; everything else switches at once
   fading: null,         // the timer of a fade that is under way
 
   // Count the tracks of a place: is there a Town1.wav? a Town2.wav? ... until one is missing.

@@ -156,6 +156,78 @@ const SKULLKING = [
   'kppppppppppppppk',
   'kppppppppppppppk',
 ];
+const FISH = [            // a fish with teeth (Coral Deep): a = body, d = fins, w = belly and teeth, e = eye
+  '................',
+  '.......kk.......',
+  '......kddk......',
+  '....kkkaakkk..k.',
+  '...kaaaaaaaak.kk',
+  '..kaeaaaaaaaakdk',
+  '.kaaaaaaaaaaaddk',
+  '.kwkwkaaaaaaaddk',
+  '.kkwkwaaaaaaakdk',
+  '..kwwwwwaaaak.kk',
+  '...kkwwwwwkk...k',
+  '.....kkddkk.....',
+  '.......kk.......',
+  '................',
+  '................',
+  '................',
+];
+const CRAB = [            // a crab: a = shell, d = legs, w = spots, e = eyes
+  '................',
+  '.kk..........kk.',
+  'kaak........kaak',
+  'ka.k........k.ak',
+  'kaak..k..k..kaak',
+  '.kak.kek.kek.kak',
+  '..kakkakkkakkak.',
+  '...kaaaaaaaaaak.',
+  '..kaawaaaaaawaak',
+  '..kaaaaaaaaaaaak',
+  '..kdaaaaaaaaaadk',
+  '...kddddddddddk.',
+  '..kkkkkkkkkkkkk.',
+  '.kdk.kdk.kdk.kdk',
+  '.kk..kk..kk..kk.',
+  '................',
+];
+const CLAM = [            // a clam with a pearl: a = shell, d = ridges, w = pearl, e = eyes
+  '................',
+  '................',
+  '................',
+  '....kkkkkkkk....',
+  '..kkadadadadkk..',
+  '.kadadadadadadk.',
+  '.kadadadadadadk.',
+  'kadadadadadadadk',
+  'kkkkkkkkkkkkkkkk',
+  'kkekkkkwwkkkkekk',
+  'kadkkkkwwkkkkdak',
+  '.kadadadadadadk.',
+  '.kkdadadadadakk.',
+  '...kkkkkkkkkk...',
+  '................',
+  '................',
+];
+const URCHIN = [            // a spiny urchin: a = body, d = spines, e = eyes
+  '.......k........',
+  '...k...d...k....',
+  '....d..d..d.....',
+  '.k...kkkkkk...k.',
+  '..d.kaaaaaak.d..',
+  '...kaaaaaaaak...',
+  'kd.kaewaaewak.dk',
+  '...kaaaaaaaak...',
+  '.kdkaaaaaaaakdk.',
+  '...kaaakkaaak...',
+  '..d.kaaaaaak.d..',
+  '.k...kkkkkk...k.',
+  '....d..d..d.....',
+  '...k...d...k....',
+  '.......k........',
+  '................',
+];
 const MIMIC = [            // a treasure chest with teeth (Endless Tower)
   '................',
   '................',
@@ -609,6 +681,10 @@ const ARMOR_LOOKS = {
         0: '....mkmkkmkm....', 1: '...kmmmmmmmmk...',
         7: '..kmmccccccmmk..', 8: '..kmccccccccmk..', 9: '..kscccggcccsk..',
        10: '..ksmmmmmmmmsk..', 11: '...kgccccccgk...', 12: '...kgccccccgk...' } },
+ 15: { c: '#1f8a9a', d: '#125a6a', m: '#ff7a8a', x: '#ffe06a', boots: '#ff7a8a', rows: {   // Abyssal Mail: deep teal grown over with coral, a fin on the helm
+        0: '.......mm.......', 1: '...kmhhmmhhmk...',
+        7: '..kmmccxccxmmk..', 8: '.kmmccccccccmmk.', 9: '..kscxccggcxsk..',
+       10: '..ksmmmmmmmmsk..', 11: '...kcxccccxck...', 12: '...kmccccccmk...' } },
 };
 const HERO_LOOK = [                                    // [hair, the hero's own colour, wears a robe?]
   ['#8b4513', '#2e6fd0', false], ['#e0b040', '#3d9142', false], ['#6a3fa0', '#b070e0', true],
@@ -660,6 +736,27 @@ const MONSTER_ART = {
   hexer:     [BRUTE,  brute('#7a55c8', '#20203c', '#101020', '#111111', '#ff50ff')],
   sentinel:  [KNIGHT, knight('#e0c060', '#b08a30', '#705818', '#40e0ff', '#3058c0')],
   mimic:     [MIMIC,  { k: OUTLINE, b: '#a0661f', g: '#f1c40f', w: '#f4f4f4', r: '#d02848' }],
+  // --- the Coral Deep ---
+  piranha:    [FISH,   { k: OUTLINE, a: '#3aa0c8', d: '#d04848', w: '#e8f4ff', e: '#111' }],
+  stonecrab:  [CRAB,   { k: OUTLINE, a: '#7a8a9a', d: '#4a5a6a', w: '#b8c8d8', e: '#111' }],
+  urchin:     [URCHIN, { k: OUTLINE, a: '#6a48a0', d: '#2a1a4a', w: '#fff', e: '#111' }],
+  drowned:    [HUMAN,  person('#2a5a4a', '#3a6a8a', '#244a66', '#9ad0c0', '#ffe060')],
+  angler:     [FISH,   { k: OUTLINE, a: '#2c2c50', d: '#5a2a6a', w: '#8a8ab0', e: '#ff4040', l: '#ffe060' }],
+  coralgolem: [KNIGHT, knight('#ff8a70', '#e05a50', '#902838', '#40e8ff', '#ffd23a')],
+  tidesinger: [GHOST,  { k: '#0a3a5a', w: '#7fd8f0' }],
+  seadrake:   [DRAGON, { k: OUTLINE, g: '#2a9a9a', y: '#b8fff0', w: '#fff', r: '#ff6a50' }],
+  kingcrab:   [CRAB,   { k: OUTLINE, a: '#e04830', d: '#8a2018', w: '#ffd23a', e: '#111' }],
+  bloomjelly: [GHOST,  { k: '#7a1a5a', w: '#ff9ad8' }],
+  coralknight:[KNIGHT, knight('#ffd23a', '#ff5a8a', '#a0285a', '#40e8ff', '#40e8ff')],
+  pearlclam:  [CLAM,   { k: OUTLINE, a: '#f0b8d8', d: '#c070a0', w: '#fffff0', e: '#111' }],
+  abyssshark: [FISH,   { k: OUTLINE, a: '#4a3a8a', d: '#2a1a5a', w: '#d0c8f0', e: '#ffe060' }],
+  prismcrab:  [CRAB,   { k: OUTLINE, a: '#40d8e8', d: '#c040d0', w: '#fff06a', e: '#111' }],
+  siren:      [GHOST,  { k: '#1a5a4a', w: '#a8ffd8' }],
+  bloomhorror:[BRUTE,  brute('#ff5a8a', '#ffd23a', '#a07a10', '#40e8ff', '#ffffff')],
+  reefwarden: [CRAB,   { k: OUTLINE, a: '#3a78c8', d: '#1a3a78', w: '#ffd23a', e: '#ff4040' }],
+  sirenqueen: [GHOST,  { k: '#5a1a6a', w: '#ffb8f0' }],
+  hydra:      [DRAGON, { k: OUTLINE, g: '#e040a0', y: '#ffe040', w: '#fff', r: '#40e8ff' }],
+  leviathan:  [FISH,   { k: OUTLINE, a: '#1a4aa0', d: '#ffb020', w: '#bfe8ff', e: '#ff3030' }],
   titan:     [BOSS,   { k: OUTLINE, r: '#d8a820', d: '#2a4aa0', y: '#ffffff', e: '#60e8ff', w: '#fff' }],
   prism:     [KNIGHT, knight('#d8f6ff', '#86c8f4', '#4484c4', '#ff60ff', '#ffffff')],
   suntwin:   [DRAGON, { k: OUTLINE, g: '#e0a020', y: '#fff0a0', w: '#fff', r: '#d03020' }],
@@ -727,10 +824,60 @@ HI_ART.mimic = (p, c) => {                              // a chest that bites: l
   p.line(c.r, 5, 24, 27, 27, 33, 33, 37, 37, 34); p.line(tint(c.r, 1.3), 1.5, 25, 28, 28, 33);   // the tongue
   for (const s of [1, -1]) { const X = side(s); p.el(X(9), 13, 4, 3.4, '#ffe060'); p.el(X(9), 13.4, 1.4, 2.6, '#111'); }   // eyes on the lid
 };
+// ---- the sea creatures of the Coral Deep ----
+HI_ART.fish = (p, c) => {                               // a = body, d = fins, w = belly, e = eye, l = a glowing lure (anglers only)
+  const dark = tint(c.a, 0.62), light = tint(c.a, 1.28);
+  p.poly(c.d, 34, 24, 46, 12, 43, 24, 46, 37);                                              // tail
+  p.poly(c.d, 18, 14, 27, 5, 31, 15); p.poly(c.d, 22, 34, 27, 42, 30, 33);                  // back fin, belly fin
+  p.el(21, 25, 16, 11, dark); p.el(20, 24, 15, 10, c.a);
+  p.el(19, 29, 11, 5, c.w); p.el(16, 19, 6, 3, light);                                      // pale belly, shine
+  p.poly('#2a0810', 4, 26, 16, 24, 15, 32, 7, 32);                                          // the mouth...
+  for (let i = 0; i < 4; i++) { p.poly('#fff', 5 + i * 3, 25.5, 7.5 + i * 3, 25.5, 6.2 + i * 3, 29); p.poly('#fff', 6.5 + i * 2.6, 32, 9 + i * 2.6, 32, 7.8 + i * 2.6, 28.6); }   // ...full of teeth
+  p.el(13, 19, 3.4, 3.4, '#fff'); p.el(12.4, 19.3, 1.6, 1.9, c.e);
+  p.line(dark, 1.2, 24, 20, 26, 26, 24, 31);                                                // gill
+  if (c.l) { p.line(dark, 1.4, 14, 15, 9, 6, 4, 8); p.el(4, 9, 3, 3, c.l); p.el(3.4, 8.2, 1.2, 1.2, '#fff'); }
+};
+HI_ART.crab = (p, c) => {                               // a = shell, d = legs, w = spots, e = eyes
+  const dark = tint(c.a, 0.6), light = tint(c.a, 1.3);
+  for (const s of [1, -1]) { const X = side(s);
+    for (let i = 0; i < 3; i++) p.line(c.d, 2.4, X(11), 31 + i * 3, X(18), 34 + i * 4, X(20), 41 + i);     // legs
+    p.line(c.d, 3.4, X(12), 26, X(19), 20, X(17), 13);                                      // arm
+    p.el(X(17), 10, 6.5, 5.5, dark); p.el(X(17), 9.5, 5.5, 4.5, c.a);                       // claw
+    p.poly('#111', X(13), 8, X(20), 5, X(17), 10); p.el(X(15), 12, 1.6, 1.2, light);        // the gap of the pincer
+    p.line(c.d, 1.6, X(5), 22, X(6), 16); p.el(X(6), 15, 2.6, 2.6, '#fff'); p.el(X(6), 15.3, 1.2, 1.5, c.e);   // eye on a stalk
+  }
+  p.el(24, 30, 16, 11, dark); p.el(24, 29, 15, 10, c.a); p.el(19, 25, 6, 3, light);
+  for (const x of [15, 24, 33]) p.el(x, 31, 2, 1.6, c.w);                                   // spots
+  p.line('#111', 1.4, 18, 36, 24, 38, 30, 36);
+};
+HI_ART.clam = (p, c) => {                               // a = shell, d = ridges, w = pearl
+  const dark = tint(c.a, 0.6), light = tint(c.a, 1.25);
+  p.poly(dark, 3, 26, 24, 4, 45, 26); p.el(24, 22, 21, 9, dark);
+  p.poly(c.a, 5, 25, 24, 7, 43, 25); p.el(24, 21, 19, 7, c.a);                              // top shell
+  for (const x of [-12, -6, 0, 6, 12]) p.line(c.d, 1.4, 24 + x * 0.3, 9, 24 + x * 1.4, 24); // ridges fanning out
+  p.line(light, 1.4, 9, 22, 20, 10);
+  p.poly('#1c0a14', 5, 26, 43, 26, 40, 34, 8, 34);                                          // the dark inside
+  p.el(24, 30, 4.5, 4.5, c.w); p.el(22.5, 28.5, 1.5, 1.5, '#fff');                          // the pearl
+  for (const s of [1, -1]) { const X = side(s); p.el(X(12), 30, 2.4, 2.4, '#ffe060'); p.el(X(12), 30.3, 1, 1.6, '#111'); }
+  p.poly(dark, 6, 34, 42, 34, 36, 44, 12, 44); p.poly(c.a, 8, 35, 40, 35, 35, 42, 13, 42);  // bottom shell
+  for (const x of [-9, 0, 9]) p.line(c.d, 1.4, 24 + x, 35, 24 + x * 0.7, 42);
+};
+HI_ART.urchin = (p, c) => {                             // a = body, d = spines, e = eyes
+  const dark = tint(c.a, 0.6), light = tint(c.a, 1.3);
+  for (let i = 0; i < 16; i++) {
+    const t = i / 16 * Math.PI * 2, r = i % 2 ? 22 : 18;
+    p.line(c.d, 2, 24 + Math.cos(t) * 9, 26 + Math.sin(t) * 9, 24 + Math.cos(t) * r, 26 + Math.sin(t) * r);
+    p.el(24 + Math.cos(t) * r, 26 + Math.sin(t) * r, 1.2, 1.2, light);
+  }
+  p.el(24, 26, 12.5, 12, dark); p.el(24, 25.5, 11.5, 11, c.a); p.el(20, 21, 4, 3, light);
+  for (const s of [1, -1]) { const X = side(s); p.el(X(4.5), 25, 3, 3.4, '#fff'); p.el(X(4.5), 25.6, 1.4, 1.9, c.e); }
+  p.line('#111', 1.5, 20, 32, 24, 33.5, 28, 32);
+};
 const HI_PAINTERS = new Map([
   [SLIME, HI_ART.slime], [BAT, HI_ART.bat], [WOLF, HI_ART.wolf], [SPIDER, HI_ART.spider], [GHOST, HI_ART.ghost],
   [BRUTE, HI_ART.brute], [KNIGHT, HI_ART.knight], [HUMAN, HI_ART.human],
   [BOSS, HI_ART.boss], [SKULLKING, HI_ART.skullking], [DRAGON, HI_ART.dragon], [MIMIC, HI_ART.mimic],
+  [FISH, HI_ART.fish], [CRAB, HI_ART.crab], [CLAM, HI_ART.clam], [URCHIN, HI_ART.urchin],
 ]);
 
 // =====================================================================
@@ -768,6 +915,29 @@ const peak = (g, rock, dark, cap, capDark) => {            // a mountain shape
   R(g, '#00000030', 1, 15, 14, 1);
 };
 const mouth = (g, glow) => { R(g, '#111', 5, 9, 6, 6); R(g, '#111', 6, 8, 4, 1); if (glow) { R(g, glow, 6, 12, 4, 3); R(g, '#111', 7, 12, 2, 1); } };
+
+// A wall of sea rock with coral growing on it. "amount" = how many corals, "corals" = their colours.
+// v (0-3) picks one of four arrangements, so a long wall does not look like one tile repeated.
+function coralWall(g, v, rock, rockLight, corals, amount) {
+  R(g, rock, 0, 0, 16, 16);
+  for (const [x, y, w, h] of [[1, 1, 6, 5], [9, 2, 6, 6], [2, 8, 5, 6], [9, 10, 5, 5]]) { R(g, rockLight, x, y, w, h); R(g, tint(rockLight, 1.25), x, y, w, 1); R(g, tint(rock, 0.8), x, y + h - 1, w, 1); }
+  const spots = [[3, 9], [11, 2], [7, 5], [12, 10], [2, 2], [8, 11]];
+  for (let i = 0; i < amount; i++) {
+    const [x, y] = spots[(i + v * 2) % spots.length], c = corals[(i + v) % corals.length];
+    R(g, c, x, y, 1, 5); R(g, c, x - 1, y + 1, 1, 2); R(g, c, x + 1, y, 1, 3); R(g, c, x + 2, y + 1, 1, 1);     // a little branch...
+    R(g, tint(c, 1.35), x, y, 1, 1); R(g, tint(c, 1.35), x + 1, y, 1, 1); R(g, tint(c, 0.7), x, y + 4, 1, 1);     // ...lit from above
+  }
+}
+// The sea bed: rippled sand in the given colours, with the odd shell, starfish or coral sprout ("bits" = their colours).
+function seaFloor(g, v, base, dark, light, bits) {
+  R(g, base, 0, 0, 16, 16);
+  for (const [x, y, w] of [[1, 3, 5], [9, 6, 4], [3, 10, 6], [11, 13, 3]]) { R(g, dark, (x + v * 5) % 12, y, w, 1); R(g, light, (x + v * 5 + 1) % 12, y + 1, w - 1, 1); }
+  if (!bits.length || v === 0) return;                        // one tile in four stays bare
+  const c = bits[v % bits.length], x = 3 + v * 3, y = 4 + (v * 5) % 8;
+  if (v === 1) { R(g, c, x, y, 3, 1); R(g, c, x + 1, y - 1, 1, 3); R(g, tint(c, 1.3), x + 1, y, 1, 1); }       // a starfish
+  else if (v === 2) { R(g, c, x, y, 3, 2); R(g, tint(c, 1.3), x, y, 3, 1); R(g, tint(c, 0.7), x + 1, y + 1, 1, 1); }   // a shell
+  else { R(g, c, x, y, 1, 3); R(g, c, x + 1, y - 1, 1, 2); R(g, c, x - 1, y, 1, 1); R(g, tint(c, 1.3), x + 1, y - 1, 1, 1); }   // a coral sprout
+}
 
 const TILE_PAINTERS = {
   '.': ground('#4caf50', '#3d9142', '#6cc66f'),            // grass
@@ -852,6 +1022,23 @@ const TILE_PAINTERS = {
     R(g, '#1c0c0a', 0, 0, 16, 16);
     for (const [x, y, w, h] of [[1, 1, 6, 5], [9, 2, 6, 6], [2, 8, 5, 6], [9, 10, 5, 5]]) { R(g, '#3a1c16', x, y, w, h); R(g, '#4e261c', x, y, w, 1); }
     R(g, '#ff6020', 7, 4, 1, 4); R(g, '#ff6020', 8, 7, 1, 3); R(g, '#ffb020', 7, 6, 1, 1);
+  },
+  // ---- THE CORAL DEEP: four looks, one for every ten floors, each brighter and more overgrown than the last ----
+  //      walls '1' '2' '3' '4'        floors '5' '6' '7' '8'        (coralWall and seaFloor are just below this table)
+  '1': (g, v) => coralWall(g, v, '#0f2a4a', '#1c4270', ['#c84848'], 1),
+  '2': (g, v) => coralWall(g, v, '#0f3a5c', '#1e5a84', ['#e85050', '#f0c030'], 2),
+  '3': (g, v) => coralWall(g, v, '#0f4a62', '#1f748c', ['#ff5a5a', '#ffd23a', '#ff8ad0'], 4),
+  '4': (g, v) => coralWall(g, v, '#16327a', '#2a58b0', ['#ff3a6a', '#ffe030', '#40e8ff', '#ff7a20', '#c860ff'], 6),
+  '5': (g, v) => seaFloor(g, v, '#2a5f86', '#234f72', '#3a78a0', []),
+  '6': (g, v) => seaFloor(g, v, '#2f7f96', '#266a80', '#48a0b4', ['#f0c030']),
+  '7': (g, v) => seaFloor(g, v, '#35a0a0', '#2a8888', '#62c8c0', ['#ff8ad0', '#ffd23a']),
+  '8': (g, v) => seaFloor(g, v, '#3ab8c8', '#2a98b0', '#8af0e8', ['#ff3a6a', '#ffe030', '#c860ff']),
+  // the whirlpool on the world map (New Game+): v = which of its four turning frames
+  '@': (g, v) => {
+    R(g, '#2f73d8', 0, 0, 16, 16);
+    const ring = (r, color, from) => { for (let i = 0; i < 5; i++) { const t = (from + i * 0.35) + v * Math.PI / 2; R(g, color, Math.round(7.5 + Math.cos(t) * r), Math.round(7.5 + Math.sin(t) * r), 1, 1); } };
+    R(g, '#1a4aa0', 3, 3, 10, 10); R(g, '#123a84', 5, 5, 6, 6); R(g, '#0a2458', 7, 7, 2, 2);
+    ring(6.5, '#ffffff', 0); ring(6.5, '#bfe6ff', 3.1); ring(4.5, '#bfe6ff', 1.2); ring(4.5, '#ffffff', 4.3); ring(2.5, '#6ea8f5', 2.2); ring(2.5, '#ffffff', 5.2);
   },
   // ---- things that stand ON the floor (the floor is drawn first, see drawExplore) ----
   '<': g => { for (let i = 0; i < 4; i++) { R(g, i % 2 ? '#d0c8dc' : '#a39bb4', 2, 2 + i * 3, 4 + i * 3, 3); R(g, '#6e667c', 2, 4 + i * 3, 4 + i * 3, 1); } },   // stairs (bright steps)

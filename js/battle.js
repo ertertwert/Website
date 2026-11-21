@@ -14,7 +14,7 @@
 // =====================================================================
 
 const BATTLE_ROWS = 7;             // lines shown at once in the Spells / Abilities / Item lists (longer lists scroll)
-const STATUS_TAGS = { poison: ['Psn', '#9be36a'], sleep: ['Slp', '#b8c4ff'], silence: ['Sil', '#c8c8c8'], regen: ['Rgn', '#7dff9a'] };
+const STATUS_TAGS = { poison: ['Psn', '#9be36a'], sleep: ['Slp', '#b8c4ff'], silence: ['Sil', '#c8c8c8'], regen: ['Rgn', '#7dff9a'], refresh: ['Rfr', '#9fd0ff'] };
 const short = hero => hero.name.slice(0, 3);
 const aOrAn = name => (/^[AEIOU]/i.test(name) ? 'an ' : 'a ') + name;   // "a Potion", "an Ether"            // "ART", "SOR", "RAY"
 
@@ -37,6 +37,8 @@ const Battle = {
     this.queue = []; this.msg = null; this.after = null; this.auto = false;
     this.hovered = null; this.taunt = null;
     this.crestUsed = false;                              // the Twin Crest relic works once per battle
+    this.round = 0;                                      // which round we are in (1 = the first)
+    this.usedOnce = {};                                  // the once-per-battle spells already spent: { 'arturos:Double Cut': true }
 
     // enemies scale with the party's average level
     // (some zones add a few extra levels: see ZONE_LEVEL_BONUS in data.js)
@@ -134,7 +136,7 @@ const Battle = {
     if (!it) return null;
     if (it.type === 'sleep') return ['Zzz', '#b8c4ff'];
     if (it.type === 'charge') return ['Charging!', '#ffe060'];
-    if (it.type === 'unleash') return ['CATACLYSM > ALL', '#ff5040'];
+    if (it.type === 'unleash') return [`${ENEMIES[e.kind].blast || 'CATACLYSM'} > ALL`, '#ff5040'];
     if (it.type === 'heal') return [`Heal > ${it.ally === e ? 'self' : it.ally.name}`, '#7dff9a'];
     if (it.type === 'rally') return ['War Cry', '#ffb060'];
     if (it.type === 'attack') return [`Attack > ${short(it.target)}`, '#ffb4a8'];
@@ -146,7 +148,7 @@ const Battle = {
     if (!it) return '';
     if (it.type === 'sleep') return `Asleep for ${e.status.sleep} more round${e.status.sleep === 1 ? '' : 's'}.`;
     if (it.type === 'charge') return 'Next: gathers power. The round after, it strikes EVERYONE.';
-    if (it.type === 'unleash') return `Next: CATACLYSM on everyone, about ${Math.round(atkOf(e) / 2 * TITAN_BLAST * 0.8)} each. DEFEND!`;
+    if (it.type === 'unleash') return `Next: ${ENEMIES[e.kind].blast || 'CATACLYSM'} on everyone, about ${Math.round(atkOf(e) / 2 * TITAN_BLAST * 0.8)} each. DEFEND!`;
     if (it.type === 'heal') return `Next: heals ${it.ally === e ? 'itself' : it.ally.name} (silence stops it).`;
     if (it.type === 'rally') return 'Next: a war cry. Every monster gets stronger.';
     if (it.type === 'attack') {
@@ -163,6 +165,7 @@ const Battle = {
 
   // ---------- 1. choosing commands ----------
   beginRound() {
+    this.round++;
     for (const e of this.aliveEnemies()) this.planIntent(e);
     this.cmds = []; this.hero = -1;
     this.nextHero();
@@ -201,7 +204,7 @@ const Battle = {
       ],
       onCancel: () => this.prevHero(),
       // under the list: this hero's favorite, used with the F key
-      extra: () => drawText('F: ' + (this.favorite(h) ? SPELLS[h.fav].name : 'no favorite'), 10, 222, this.favorite(h) ? '#ffd75e' : '#8088a8'),
+      extra: () => drawText((this.favorite(h) ? SPELLS[h.fav].name : ''), 10, 222, this.favorite(h) ? '#ffd75e' : '#8088a8'), // ('F: ' + (this.favorite(h) ? SPELLS[h.fav].name : 'no favorite')
     });
   },
 
@@ -220,9 +223,11 @@ const Battle = {
       Sfx.play(h.fav ? 'save' : 'cancel');
     } else if (t.isCommand) this.useFavorite(h);
   },
+  // Has this hero already used this once-per-battle spell in this fight?
+  spent(h, s) { return !!(s.once && this.usedOnce[h.id + ':' + s.name]); },
   useFavorite(h) {
     const s = this.favorite(h);
-    if (!s || h.mp < s.mp || (h.status.silence && !isAbility(s))) return Sfx.play('buzz');   // none, too little MP, or silenced
+    if (!s || h.mp < s.mp || (h.status.silence && !isAbility(s)) || this.spent(h, s)) return Sfx.play('buzz');   // none, too little MP, silenced, or used up
     Sfx.play('ok');
     const cast = target => this.setCommand({ type: 'spell', spell: s, target });
     if (s.target === 'enemy') {
@@ -236,8 +241,8 @@ const Battle = {
     const items = list.map(id => {
       const s = SPELLS[id];
       return {
-        label: s.name, right: () => (h.fav === id ? '* ' : '') + s.mp + ' MP', desc: describeSpell(s, h),   // * = the favorite
-        disabled: h.mp < s.mp,
+        label: s.name, right: () => (h.fav === id ? '* ' : '') + (this.spent(h, s) ? 'USED' : s.mp + ' MP'), desc: describeSpell(s, h),   // * = the favorite
+        disabled: h.mp < s.mp || this.spent(h, s),
         pick: () => {
           if (s.target === 'enemy') this.pickEnemy(t => this.setCommand({ type: 'spell', spell: s, target: t }));
           else if (s.target === 'ally') this.pickAlly(t => this.setCommand({ type: 'spell', spell: s, target: t }));
@@ -317,6 +322,7 @@ const Battle = {
     heroes.forEach(h => { const c = this.cmds[G.party.indexOf(h)]; if (c && c.type === 'defend') h.defending = true; });
     const order = [...heroes, ...this.aliveEnemies()].sort(() => Math.random() - 0.5);
     if (this.twist && this.twist.ambush) order.sort((a, b) => (a.isHero ? 1 : 0) - (b.isHero ? 1 : 0));   // twist: monsters always go first
+    if (hasRelic('leviathan') && this.round === 1) order.sort((a, b) => (a.isHero ? 0 : 1) - (b.isHero ? 0 : 1));   // relic: Pre-Emptive Strike
     for (const u of order) {
       this.queue.push(() => {
         const finished = this.fled || !aliveHeroes().length || !this.aliveEnemies().length;
@@ -341,7 +347,7 @@ const Battle = {
       if (it.type === 'charge') { Sfx.play('buff'); return `${u.name} gathers a terrible power! Brace yourselves!`; }
       if (it.type === 'unleash') {                       // everyone is hit; Defend takes most of the sting out
         Sfx.play('hurt');
-        return `${u.name} unleashes CATACLYSM! ` + aliveHeroes().map(h =>
+        return `${u.name} unleashes ${ENEMIES[u.kind].blast || 'CATACLYSM'}! ` + aliveHeroes().map(h =>
           this.hurt(h, Math.max(1, Math.round(physDamage(u, h) * TITAN_BLAST * (h.defending ? TITAN_BLAST_GUARD : 1)))) + this.wake(h)).join(' ');
       }
       if (it.type === 'heal') {
@@ -389,7 +395,15 @@ const Battle = {
     target.hp = Math.max(0, target.hp - dmg);
     target.flash = 0.35;
     if (target.hp <= 0) { target.status = {}; target.intent = null; }
-    return `${target.name} takes ${dmg} damage${target.hp <= 0 ? ' and is defeated!' : '.'}` + this.fallen(target);
+    return `${target.name} takes ${dmg} damage${target.hp <= 0 ? ' and is defeated!' : '.'}` + this.fallen(target) + this.frenzy(target);
+  },
+  // Leviathan: below a share of its HP ("frenzy" in data.js) it turns savage, once. Returns extra text.
+  frenzy(target) {
+    const share = !target.isHero && ENEMIES[target.kind].frenzy;
+    if (!share || target.enraged || target.hp <= 0 || target.hp >= target.maxhp * share) return '';
+    target.enraged = true;
+    target.str = Math.round(target.str * TWIN_RAGE / 1.2); target.mag = Math.round(target.mag * TWIN_RAGE / 1.2);   // +25%
+    return ` ${target.name} thrashes in a frenzy and grows stronger!`;
   },
   // Sol and Luna: when one twin falls, the other is filled with rage. Returns extra text.
   fallen(target) {
@@ -436,8 +450,12 @@ const Battle = {
   },
 
   castSpell(a, s, t) {
+    if (a.isHero && s.once) {                            // once per battle (also if it was ordered twice somehow)
+      if (this.spent(a, s)) return `${a.name} cannot use ${s.name} again in this battle.`;
+      this.usedOnce[a.id + ':' + s.name] = true;
+    }
     let out = `${a.name} ${isAbility(s) ? 'uses' : 'casts'} ${s.name}! `;
-    Sfx.play(s.kind === 'damage' ? 'spell' : s.kind === 'warp' ? 'warp' : ['heal', 'revive', 'cure', 'regen', 'healself'].includes(s.kind) ? 'heal' : 'buff');
+    Sfx.play(s.kind === 'damage' ? 'spell' : s.kind === 'warp' ? 'warp' : ['heal', 'revive', 'cure', 'regen', 'refresh', 'healself'].includes(s.kind) ? 'heal' : 'buff');
     if (s.kind === 'warp') {                             // Warp in battle: a sure escape (but not from bosses)
       a.mp -= s.mp;
       if (this.boss) return out + 'But a powerful force holds the party in place!';
@@ -458,6 +476,10 @@ const Battle = {
     }
     if (s.kind === 'selfbuff') { a.buff[s.stat] = BUFF_MAX; return out + `${a.name}'s ${s.stat.toUpperCase()} soars to its limit!`; }
     if (s.kind === 'healself') return out + `${a.name} recovers ${healUnit(a, Math.ceil(maxHpOf(a) / 2))} HP.`;
+    if (s.kind === 'refresh') {                          // HP and MP come back every round (Refresh)
+      for (const x of friends) x.status.refresh = Math.max(x.status.refresh || 0, s.rounds);
+      return out + 'A cool tide washes over the party: everyone will recover HP and MP every round.';
+    }
     if (s.kind === 'regen') {                            // one ally, or the whole party (Renewal)
       const targets = s.target === 'party' ? friends : [t].filter(x => x && x.hp > 0);
       if (!targets.length) return out + 'But it has no effect.';
@@ -505,7 +527,7 @@ const Battle = {
     // "hits" (Arrow Storm): several separate shots, each at a random enemy that is still standing
     const shots = s.hits ? Array.from({ length: s.hits }) : victims;
     return out + shots.map(shot => {
-      const x = s.hits ? pick(this.foesOf(a)) : shot;
+      const x = !s.hits ? shot : s.sameTarget ? ((t && t.hp > 0) ? t : this.foesOf(a)[0]) : pick(this.foesOf(a));   // Double Cut keeps to its target
       if (!x) return '';                                 // (every enemy fell before the last arrow)
       const factor = elementFactor(s, x);
       let text = this.hurt(x, spellDamage(s, a, x));
@@ -538,6 +560,12 @@ const Battle = {
       if (u.status.regen) {
         lines.push(`${u.name} regains ${healUnit(u, Math.ceil(maxHpOf(u) * REGEN_AMOUNT))} HP.`);
         if (--u.status.regen <= 0) delete u.status.regen;
+      }
+      if (u.status.refresh && u.isHero) {
+        const hp = healUnit(u, Math.ceil(maxHpOf(u) * REGEN_AMOUNT)), before = u.mp;
+        u.mp = Math.min(maxStat(u, 'mp'), u.mp + Math.ceil(maxStat(u, 'mp') * REFRESH_MP));
+        lines.push(`${u.name} regains ${hp} HP and ${u.mp - before} MP.`);
+        if (--u.status.refresh <= 0) delete u.status.refresh;
       }
       if (u.status.silence && --u.status.silence <= 0) { delete u.status.silence; lines.push(`${u.name} can cast again.`); }
     }
@@ -609,9 +637,10 @@ const Battle = {
       if (e === targeted) for (let r = 0; r < 4; r++) R(ctx, '#ffd75e', cx + 26 + r, top + 4 + r, 8 - r * 2, 1);   // little arrow
       // what it is about to do: above a normal monster, beside a boss
       const label = this.intentLabel(e);
-      if (label && e.big) { drawText('NEXT:', cx + 38, top + 14, '#ffd75e'); drawText(label[0], cx + 38, top + 25, label[1]); }
-      if (e.big && ENEMIES[e.kind].shifting && e.weak) drawText(`WEAK: ${e.weak}`, cx + 38, top + 40, '#7dff9a');     // the Prism Golem's weakness this round
-      else if (label) drawText(label[0], cx, top - 10, label[1], 'center');
+      const solo = this.aliveEnemies().length === 1;         // a boss with company has no room beside it: its label goes above, like the others
+      if (label && e.big && solo) { drawText('NEXT:', cx + 38, top + 14, '#ffd75e'); drawText(label[0], cx + 38, top + 25, label[1]); }
+      if (e.big && solo && ENEMIES[e.kind].shifting && e.weak) drawText(`WEAK: ${e.weak}`, cx + 38, top + 40, '#7dff9a');     // the Prism Golem's weakness this round
+      else if (label) drawText(label[0], cx, Math.max(46, top - 10), label[1], 'center');
       drawText(`${e.name} L${e.lvl}`, cx, 111, '#fff', 'center');
       R(ctx, '#000', cx - 21, 122, 42, 5);
       R(ctx, '#e04040', cx - 20, 123, Math.ceil(40 * e.hp / e.maxhp), 3);
@@ -676,6 +705,11 @@ const BACKDROPS = {
   crypt:   ['#1c160c', '#6b5330', '#4a3a20', 'pillars', '#4a3a20'],
   tower:   ['#141a2e', '#4a5578', '#333c5c', 'windows', '#0a0e1c'],
   magma:   ['#1c0c0a', '#4a2a24', '#38201c', 'lava',    '#1c0c0a'],
+  // the Coral Deep: under water, with more and brighter coral the deeper you are (the last entry = the coral colours)
+  reefa:   ['#0c2f58', '#2a5f86', '#3a78a0', 'coral',   ['#c84848']],
+  reefb:   ['#0d4268', '#2f7f96', '#48a0b4', 'coral',   ['#e85050', '#f0c030']],
+  reefc:   ['#0e5670', '#35a0a0', '#62c8c0', 'coral',   ['#ff5a5a', '#ffd23a', '#ff8ad0']],
+  reefd:   ['#143a8a', '#3ab8c8', '#8af0e8', 'coral',   ['#ff3a6a', '#ffe030', '#40e8ff', '#ff7a20', '#c860ff']],
 };
 
 function drawBackdrop(zone) {
@@ -707,6 +741,18 @@ function drawBackdrop(zone) {
   if (scenery === 'windows') for (const x of [70, 160, 250]) {
     R(ctx, color, x - 12, 54, 24, 44); R(ctx, '#2a3a70', x - 9, 60, 18, 36); R(ctx, '#2a3a70', x - 6, 57, 12, 3);
     R(ctx, '#fff', x - 4, 66, 1, 1); R(ctx, '#fff', x + 3, 74, 1, 1); R(ctx, '#fff', x - 1, 84, 1, 1);    // stars
+  }
+  if (scenery === 'coral') {                                    // under water: shafts of light, bubbles, coral along the sea bed
+    for (const x of [40, 130, 230]) for (let i = 0; i < 56; i++) R(ctx, '#ffffff12', x + i * 0.6, i * 2, 26 - i * 0.2, 2);
+    for (let i = 0; i < 12; i++) { const x = (i * 71) % SCREEN_W, y = 20 + (i * 37) % 80; R(ctx, '#ffffff50', x, y, 2, 2); R(ctx, '#ffffff90', x, y, 1, 1); }
+    const colors = [].concat(color), count = 4 + colors.length * 3;
+    for (let i = 0; i < count; i++) {
+      const c = colors[i % colors.length], x = 12 + (i * 97) % (SCREEN_W - 24), h = 14 + (i * 13) % 22;
+      R(ctx, tint(c, 0.75), x, HORIZON - h, 4, h); R(ctx, c, x, HORIZON - h, 2, h);                                  // trunk
+      R(ctx, c, x - 6, HORIZON - h * 0.7, 6, 3); R(ctx, c, x - 6, HORIZON - h * 0.7 - 7, 3, 8);                        // left arm
+      R(ctx, c, x + 4, HORIZON - h * 0.45, 6, 3); R(ctx, c, x + 8, HORIZON - h * 0.45 - 9, 3, 10);                     // right arm
+      R(ctx, tint(c, 1.35), x, HORIZON - h, 2, 2); R(ctx, tint(c, 1.35), x - 6, HORIZON - h * 0.7 - 7, 2, 2); R(ctx, tint(c, 1.35), x + 8, HORIZON - h * 0.45 - 9, 2, 2);
+    }
   }
   if (scenery === 'lava') {
     mound(80, 34, 1.6, color); mound(230, 46, 1.4, color);

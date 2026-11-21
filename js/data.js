@@ -86,6 +86,13 @@ const SPELLS = {
   tempest:  { name: 'Tempest',   mp: 20, kind: 'damage', target: 'allEnemies', power: 40,  scale: 0.9, element: 'wind' },
   // Regen on the whole party. rounds: how long it lasts (plain Regen uses REGEN_ROUNDS)
   renewal:  { name: 'Renewal',   mp: 50, kind: 'regen',  target: 'party', rounds: 3 },
+  // ---- REWARDS OF THE CORAL DEEP: one for each hero, won from its bosses (see js/reef.js) ----
+  //   once: true     can be used only ONE time per battle (take it away to lift the limit)
+  //   sameTarget     with "hits": every strike lands on the monster you chose
+  //   alwaysWeak     counts as hitting a weakness on every monster, whatever it is weak to or resists
+  doublecut: { name: 'Double Cut', mp: 60, kind: 'damage',  target: 'enemy',      uses: 'str', power: 20, scale: 1.3, hits: 2, sameTarget: true, once: true },
+  refresh:   { name: 'Refresh',    mp: 70, kind: 'refresh', target: 'party',      rounds: 4, once: true },
+  ultima:    { name: 'Ultima',     mp: 80, kind: 'damage',  target: 'allEnemies', power: 60, scale: 1.3, alwaysWeak: true, once: true },
   // hits: 4 = four separate arrows, each at a random enemy (all four at a lone boss). An Ability, so Silence cannot stop it.
   arrowstorm: { name: 'Arrow Storm', mp: 40, kind: 'damage', target: 'allEnemies', uses: 'str', power: 8, scale: 0.7, hits: 4 },
   // ARTUROS - the weakest spells, but strong sword skills later on
@@ -132,6 +139,7 @@ const SPELLS = {
   chill:    { name: 'Chill',     mp: 3,  kind: 'damage', target: 'enemy',      power: 6,   scale: 0.45, element: 'ice' },
   darkwave: { name: 'Dark Wave', mp: 5,  kind: 'damage', target: 'allEnemies', power: 6,   scale: 0.35 },
   firebreath:{ name: 'Fire Breath', mp: 6, kind: 'damage', target: 'allEnemies', power: 10, scale: 0.32, element: 'fire' },
+  tidalwave: { name: 'Tidal Wave',  mp: 8, kind: 'damage', target: 'allEnemies', power: 12, scale: 0.32, element: 'ice' },
   // attacks that hurt AND may leave an ailment behind:  inflict = which one,  chance = how often (0.5 = half the time)
   venomspit:  { name: 'Venom Spit',  mp: 4, kind: 'damage', target: 'enemy',      power: 6, scale: 0.45, inflict: 'poison',  chance: 0.7 },
   toxiccloud: { name: 'Toxic Cloud', mp: 7, kind: 'damage', target: 'allEnemies', power: 4, scale: 0.3,  inflict: 'poison',  chance: 0.5 },
@@ -166,7 +174,8 @@ const WEAPONS = {
           { name: 'Orichalcum Blade', atk: 150, price: 30000 }, { name: 'Ragnarok', atk: 185, price: 60000 },
           // tiers 11-14: only in New Game+ chests (see NG_PLUS_CHEST_GEAR)
           { name: 'Sunsteel Blade', atk: 220, price: 100000 },  { name: 'Starforged Blade', atk: 260, price: 150000 },
-          { name: 'Eclipse Blade', atk: 305, price: 250000 },   { name: 'Blade of Legend', atk: 360, price: 400000 }],
+          { name: 'Eclipse Blade', atk: 305, price: 250000 },   { name: 'Blade of Legend', atk: 360, price: 400000 },
+          { name: 'Tidecaller Blade', atk: 420, price: 600000 }],   // tier 15: only in the Coral Deep
   bow:   [{ name: 'Short Bow', atk: 2 },     { name: 'Hunter Bow', atk: 6, price: 50 },
           { name: 'Long Bow', atk: 12, price: 220 },    { name: 'Elven Bow', atk: 22, price: 800 },
           { name: 'Mythril Bow', atk: 33, price: 2000 },   { name: 'Storm Bow', atk: 48, price: 4500 },
@@ -174,7 +183,8 @@ const WEAPONS = {
           { name: 'Artemis Bow', atk: 104, price: 20000 },
           { name: 'Orichalcum Bow', atk: 126, price: 28000 },   { name: 'Sunstrike', atk: 156, price: 60000 },
           { name: 'Sunsteel Bow', atk: 186, price: 100000 },    { name: 'Starforged Bow', atk: 220, price: 150000 },
-          { name: 'Eclipse Bow', atk: 258, price: 250000 },     { name: 'Bow of Legend', atk: 305, price: 400000 }],
+          { name: 'Eclipse Bow', atk: 258, price: 250000 },     { name: 'Bow of Legend', atk: 305, price: 400000 },
+          { name: 'Tidecaller Bow', atk: 355, price: 600000 }],
   staff: [{ name: 'Oak Staff', atk: 1 },     { name: 'Ash Staff', atk: 4, price: 40 },
           { name: 'Mage Staff', atk: 8, price: 200 },   { name: 'Sage Staff', atk: 15, price: 700 },
           { name: 'Mythril Rod', atk: 23, price: 1800 },   { name: 'Archmage Staff', atk: 34, price: 4000 },
@@ -182,7 +192,8 @@ const WEAPONS = {
           { name: 'Staff of Ages', atk: 78, price: 20000 },
           { name: 'Orichalcum Rod', atk: 96, price: 26000 },    { name: 'Worldtree Staff', atk: 120, price: 60000 },
           { name: 'Sunsteel Rod', atk: 144, price: 100000 },    { name: 'Starforged Rod', atk: 170, price: 150000 },
-          { name: 'Eclipse Rod', atk: 200, price: 250000 },     { name: 'Staff of Legend', atk: 236, price: 400000 }],
+          { name: 'Eclipse Rod', atk: 200, price: 250000 },     { name: 'Staff of Legend', atk: 236, price: 400000 },
+          { name: 'Tidecaller Rod', atk: 275, price: 600000 }],
 };
 const ARMORS = [
   { name: 'Clothes', def: 0 },
@@ -201,6 +212,7 @@ const ARMORS = [
   { name: 'Starforged Mail', def: 200, price: 150000 },
   { name: 'Eclipse Mail', def: 236, price: 250000 },
   { name: 'Armor of Legend', def: 280, price: 400000 },
+  { name: 'Abyssal Mail', def: 330, price: 600000 },    // tier 15: only in the Coral Deep
 ];
 const ITEMS = {
   potion:   { name: 'Potion',       price: 20,  desc: 'HP +40',  hp: 40 },
@@ -287,6 +299,33 @@ const ENEMIES = {
   flamespirit: { name: 'Flame Spirit', sprite: 'flamespirit', hp: 1.2, str: 0.9, def: 1.4, int: 1.6, mag: 1.8, exp: 36, gold: 36, spell: 'ember' },
   hellhound:   { name: 'Hellhound',    sprite: 'hellhound',   hp: 1.7, str: 2.2, def: 1.4, int: 0.9, mag: 0.5, exp: 36, gold: 34 },
   magmalord:   { name: 'Magma Lord',   sprite: 'magmalord', big: true, hp: 26, mp: 14, str: 2.0, def: 1.7, int: 1.6, mag: 1.9, exp: 450, gold: 3000, spell: 'firebreath' },
+  // --- THE CORAL DEEP (New Game+ dungeon, see js/reef.js): a new set of monsters every ten floors ---
+  //   blast: 'NAME'   what a "charge" monster calls its big attack        frenzy: 0.5   below half HP it grows stronger
+  // floors 1-10: the Drowned Shallows
+  piranha:    { name: 'Reef Piranha',   sprite: 'piranha',    hp: 2.2, str: 2.1, def: 1.6, int: 1.2, mag: 0.5, exp: 50, gold: 50 },
+  stonecrab:  { name: 'Stone Crab',     sprite: 'stonecrab',  hp: 3.2, str: 1.9, def: 2.4, int: 1.4, mag: 0.5, exp: 54, gold: 54 },
+  urchin:     { name: 'Spike Urchin',  sprite: 'urchin',     hp: 2.6, str: 1.8, def: 2.0, int: 1.6, mag: 1.5, exp: 52, gold: 52 },
+  drowned:    { name: 'Drowned One', sprite: 'drowned',    hp: 2.8, str: 1.9, def: 1.7, int: 1.8, mag: 1.6, exp: 54, gold: 60 },
+  // floors 11-20: the Coral Gardens
+  angler:     { name: 'Angler Fish', sprite: 'angler',     hp: 2.8, str: 2.0, def: 1.8, int: 2.0, mag: 1.7, exp: 60, gold: 60 },
+  coralgolem: { name: 'Coral Golem',    sprite: 'coralgolem', hp: 4.0, str: 2.2, def: 2.5, int: 1.5, mag: 0.5, exp: 64, gold: 64 },
+  tidesinger: { name: 'Tide Singer',    sprite: 'tidesinger', hp: 2.6, str: 1.5, def: 1.7, int: 2.2, mag: 1.7, exp: 60, gold: 62, heals: true },
+  seadrake:   { name: 'Sea Drake',      sprite: 'seadrake',   hp: 3.2, str: 2.1, def: 2.0, int: 1.9, mag: 1.7, exp: 64, gold: 66 },
+  // floors 21-30: the Reef Heart
+  kingcrab:   { name: 'King Crab',      sprite: 'kingcrab',   hp: 3.6, str: 2.2, def: 2.3, int: 1.7, mag: 0.5, exp: 72, gold: 72, rally: true },
+  bloomjelly: { name: 'Bloom Jelly',    sprite: 'bloomjelly', hp: 2.6, str: 1.8, def: 1.7, int: 2.3, mag: 1.8, exp: 70, gold: 70 },
+  coralknight:{ name: 'Coral Knight',   sprite: 'coralknight',hp: 3.2, str: 2.3, def: 2.1, int: 1.8, mag: 0.5, exp: 72, gold: 74 },
+  pearlclam:  { name: 'Pearl Clam',     sprite: 'pearlclam',  hp: 2.9, str: 1.9, def: 2.5, int: 2.4, mag: 1.8, exp: 72, gold: 90, heals: true },
+  // floors 31-40: the Bloom
+  abyssshark: { name: 'Abyss Shark',    sprite: 'abyssshark', hp: 3.3, str: 2.5, def: 2.0, int: 1.9, mag: 0.5, exp: 82, gold: 82 },
+  prismcrab:  { name: 'Prism Crab',     sprite: 'prismcrab',  hp: 3.6, str: 2.3, def: 2.3, int: 2.3, mag: 1.9, exp: 84, gold: 84, shifting: true },
+  siren:      { name: 'Siren',          sprite: 'siren',      hp: 2.8, str: 1.9, def: 1.8, int: 2.6, mag: 2.0, exp: 82, gold: 86 },
+  bloomhorror:{ name: 'Bloom Horror',   sprite: 'bloomhorror',hp: 3.8, str: 2.4, def: 2.1, int: 2.1, mag: 1.9, exp: 86, gold: 86, rally: true },
+  // the four bosses (floors 10, 20, 30 and 40)
+  reefwarden: { name: 'Reef Warden',  sprite: 'reefwarden', big: true, hp: 34, mp: 10, str: 2.1, def: 2.4, int: 2.0, mag: 1.7, exp: 900,  gold: 8000,  boss: true, charge: true, blast: 'CRUSHING TIDE' },
+  sirenqueen: { name: 'Siren Queen',  sprite: 'sirenqueen', big: true, hp: 36, mp: 20, str: 1.9, def: 2.0, int: 2.6, mag: 2.0, exp: 1200, gold: 10000, boss: true },
+  hydra:      { name: 'Chroma Hydra', sprite: 'hydra',      big: true, hp: 44, mp: 20, str: 2.2, def: 2.3, int: 2.4, mag: 2.0, exp: 1600, gold: 12000, boss: true, shifting: true },
+  leviathan:  { name: 'Leviathan',    sprite: 'leviathan',  big: true, hp: 70, mp: 30, str: 2.4, def: 2.5, int: 2.6, mag: 2.1, exp: 3000, gold: 30000, boss: true, charge: true, shifting: true, frenzy: 0.5, blast: 'MAELSTROM' },
   // --- the Endless Tower only (see js/tower.js). Special talents:
   //   heals: true    mends a wounded monster ("Heal > Golem")        rally: true  a war cry that raises every monster's STR
   //   charge: true   gathers power for a round, then hits everyone  shifting: true  its weakness changes every round
@@ -320,6 +359,12 @@ const ENEMY_TRAITS = {
   icewolf: ['fire', 'ice'], yeti: ['fire', 'ice'], frostwisp: ['fire', 'ice', ['chill', 'hush']],
   firebat: ['ice', 'fire', ['shriek']], salamander: ['ice', 'fire'], magmaslime: ['ice', 'fire', ['toxiccloud']], lavagolem: ['ice', 'fire'],
   flamespirit: ['ice', 'fire', ['ember', 'hush']], hellhound: ['ice', 'fire'], magmalord: ['ice', 'fire', ['firebreath', 'toxiccloud', 'mindspike']],
+  piranha: ['bolt'], stonecrab: ['bolt', 'ice'], urchin: ['fire', null, ['venomspit'], 0.5], drowned: ['fire', 'ice', ['nightmare', 'chill']],
+  angler: ['bolt', null, ['mindspike']], coralgolem: ['wind', 'fire'], tidesinger: ['bolt', 'ice', ['lullaby', 'chill']], seadrake: ['bolt', 'fire', ['tidalwave']],
+  kingcrab: ['bolt', 'ice'], bloomjelly: ['fire', 'bolt', ['toxiccloud', 'shriek'], 0.35], coralknight: ['wind'], pearlclam: ['fire', 'ice', ['tidalwave']],
+  abyssshark: ['bolt'], prismcrab: [null, null, ['tidalwave']], siren: ['wind', 'ice', ['mindspike', 'nightmare', 'tidalwave']], bloomhorror: ['fire', null, ['toxiccloud'], 0.4],
+  reefwarden: ['bolt', 'ice', ['tidalwave']], sirenqueen: ['wind', 'ice', ['nightmare', 'mindspike', 'tidalwave', 'shriek']],
+  hydra: [null, null, ['toxiccloud', 'tidalwave']], leviathan: [null, null, ['tidalwave', 'shriek', 'mindspike']],
   mender: ['fire'], warcaller: ['bolt'], hexer: ['wind', 'ice', ['hush', 'lullaby', 'chill'], 0.3], sentinel: ['bolt'],
   mimic: ['fire', null, null, 0.3], titan: ['wind', 'bolt'], prism: [null], suntwin: ['ice', 'fire'], moontwin: ['fire', 'ice', ['chill', 'darkwave']],
 };
@@ -346,10 +391,16 @@ const ZONES = {
   snow:    ['icewolf', 'yeti', 'frostwisp', 'icewolf'],
   volcano: ['firebat', 'salamander', 'magmaslime'],
   magma:   ['salamander', 'lavagolem', 'flamespirit', 'hellhound', 'magmaslime'],
+  // the Coral Deep: one zone for every ten floors
+  reefa:   ['piranha', 'piranha', 'stonecrab', 'urchin', 'drowned'],
+  reefb:   ['angler', 'coralgolem', 'tidesinger', 'seadrake', 'angler'],
+  reefc:   ['kingcrab', 'bloomjelly', 'coralknight', 'pearlclam', 'coralknight'],
+  reefd:   ['abyssshark', 'prismcrab', 'siren', 'bloomhorror', 'abyssshark'],
 };
 // monsters in these zones are this many levels above the party
 const ZONE_LEVEL_BONUS = { dungeon: 2, grass2: 1, forest2: 1, desert: 2, crypt: 3, grass3: 3, forest3: 3,
-                           sea: 4, grass4: 4, forest4: 4, snow: 5, volcano: 5, magma: 6 };
+                           sea: 4, grass4: 4, forest4: 4, snow: 5, volcano: 5, magma: 6,
+                           reefa: 8, reefb: 10, reefc: 12, reefd: 14 };   // the Coral Deep: well above the party
 
 // The tower has one zone per floor (tower1 ... tower10). Higher floors get
 // tougher monsters and a bigger level bonus: +2 on floor 1 up to +6 on floor 10.
@@ -380,7 +431,7 @@ const BOSSES = {
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
 const ENDLESS_BOOST = 0.02;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.25;
+const NG_PLUS_BOOST = 0.0;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
@@ -435,13 +486,23 @@ const RELICS = {
   titan: { name: "Titan's Heart", desc: 'Every hero starts each battle with Regen.' },
   prism: { name: 'Prism Shard',   desc: 'Hitting a weakness does double damage instead of +50%.' },
   twins: { name: 'Twin Crest',    desc: 'Once per battle, a hero who would fall holds on with 1 HP.' },
+  leviathan: { name: 'Pre-Emptive Strike', desc: 'The party always acts first in the first round of a battle.' },   // from the Coral Deep
 };
 const hasRelic = id => !!G.tower.relics[id];
+// ---------------------------------------------------------------------
+// THE CORAL DEEP: numbers to tune. (How it all works is in js/reef.js.)
+// ---------------------------------------------------------------------
+const REEF_FLOORS = 40;                // (the bosses stand on floors 10, 20, 30 and 40)
+const REEF_BOSS_LEVELS = 4;            // a boss is this many levels above the monsters of its floors
+const REEF_STAT_POINTS = { 10: 2, 20: 2, 30: 2, 40: 5 };   // every time a boss falls: this much on EVERY stat of every hero, forever
+const REFRESH_MP = 0.06;               // Refresh: share of max MP restored each round (its HP share is REGEN_AMOUNT)
+const newReef = () => ({ checkpoint: 0, deepest: 0, kills: {}, points: 0 });   // this save's Coral Deep progress
 const newTower = () => ({ best: 0, checkpoint: 0, relics: {}, kills: {}, mimics: 0, mimicsPaid: 0, points: 0 });   // this save's tower progress
 
 const WARD_FACTOR = 0.25;      // while a Ward Charm is active, battles are this much as likely (a quarter)
 const ENCOUNTER_CHANCE = { '.': 0.10, 'T': 0.18, '_': 0.09, ':': 0.10, ';': 0.09, '-': 0.09,
-                           '~': 0.05, '*': 0.10, 'P': 0.18, '%': 0.12, 'a': 0.09 };   // chance per step on each tile
+                           '~': 0.05, '*': 0.10, 'P': 0.18, '%': 0.12, 'a': 0.09,
+                           '5': 0.07, '6': 0.07, '7': 0.07, '8': 0.07 };   // (5-8: the floors of the Coral Deep)   // chance per step on each tile
 
 // ---------------------------------------------------------------------
 // FORMULAS
@@ -471,6 +532,7 @@ function maxStat(hero, key) {
 function makeHero(id) {
   const h = { id, cls: HERO_DEFS[id], name: HERO_DEFS[id].name, isHero: true,
               lvl: 1, exp: 0, weapon: 0, armor: 0, defending: false,
+              extra: [],                                 // spells and abilities won as rewards (the Coral Deep)
               bonus: {},                                 // permanent stat points from the Endless Tower: { str: 3, hp: 1 }
               fav: null,                                 // favorite spell or ability (the F key in battle)
               picks: {},                                 // abilities chosen at level-ups: { level: spell id }
@@ -521,11 +583,13 @@ function rollDrop(boss) {
 // There is one set for each way of playing:
 //   first  the first playthrough        plus   New Game+ (on top of NG_PLUS_BOOST per cycle)
 //   tower  the Endless Tower (on top of its growth per floor)
+//   reef   the Coral Deep
 // =====================================================================
 const SCALING = {
   first: { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
   plus:  { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
   tower: { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
+  reef:  { hp: 1, attack: 1, magic: 1, defense: 1, exp: 1, gold: 1 },   // the Coral Deep (used there INSTEAD of the "plus" set)
 };
 // DIFFICULTY: chosen when a new game starts and kept with the save. It multiplies the set above.
 // (Add a line to offer another choice, e.g.  Brutal: { hp: 2, attack: 1.5, ... })
@@ -538,7 +602,8 @@ const DIFFICULTIES = {
 const KNOB_OF = { hp: 'hp', str: 'attack', mag: 'magic', def: 'defense', int: 'defense' };
 // the multiplier for one knob right now, e.g. scaling('hp')
 function scaling(knob) {
-  const set = G.run ? SCALING.tower : G.ngPlus ? SCALING.plus : SCALING.first;
+  const inReef = typeof player !== 'undefined' && MAPS[player.map] && MAPS[player.map].reefFloor;
+  const set = G.run ? SCALING.tower : inReef ? SCALING.reef : G.ngPlus ? SCALING.plus : SCALING.first;
   return set[knob] * (DIFFICULTIES[G.difficulty] || DIFFICULTIES.Normal)[knob];
 }
 
@@ -588,6 +653,7 @@ function spellDamage(spell, caster, target) {
 }
 // 1.5 if the target is weak to the spell's element, 0.5 if it resists it, otherwise 1
 function elementFactor(spell, target) {
+  if (spell.alwaysWeak && !target.isHero) return hasRelic('prism') ? 2 : ELEMENT_WEAK;   // Ultima: a weak point on everything
   if (!spell.element || target.isHero) return 1;
   if (target.weak === spell.element) return hasRelic('prism') ? 2 : ELEMENT_WEAK;
   return target.resist === spell.element || target.resist === 'all' ? ELEMENT_RESIST : 1;   // 'all' = everything but its weakness
@@ -625,7 +691,11 @@ const BUFF_LABEL = { str: 'attack (STR)', def: 'defence (DEF)', int: 'magic defe
 function describeSpell(spell, caster) {
   const amount = Math.min(999, Math.round(spellBase(spell, caster)));
   const who = spell.target === 'allEnemies' ? 'ALL enemies' : 'one enemy';
+  const limit = spell.once ? ' 1x use' : ''; //  ' Once per battle.' 
+  if (spell.sameTarget) return `${spell.hits} strikes on one enemy, about ${amount} damage each.` + limit;
   if (spell.hits) return `${spell.hits} arrows at random enemies, about ${amount} damage each.`;
+  if (spell.alwaysWeak) return `About ${amount} damage to ${who}, always as a weak point.` + limit;
+  if (spell.kind === 'refresh') return `The whole party recovers HP and MP for ${spell.rounds} rounds.` + limit;
   if (spell.kind === 'damage') return `About ${amount} ${spell.element ? spell.element + ' ' : ''}damage to ${who}.` + (spell.inflict ? ' May poison.' : '');
   if (spell.kind === 'status') return `${spell.status === 'sleep' ? 'Puts' : 'Silences'} ${who}${spell.status === 'sleep' ? ' to sleep' : ''} (${Math.round(spell.chance * 100)}% chance).`;
   if (spell.kind === 'cure') return `Cures poison, sleep and silence for ${spell.target === 'party' ? 'the whole party' : 'one ally'}.`;
@@ -658,6 +728,7 @@ const SORT_BY_MP = true;        // false = list spells and abilities in the orde
 function knownSpells(hero) {
   const list = hero.cls.spells.filter(([lvl]) => lvl <= hero.lvl).map(([, id]) => id);
   list.push(...Object.values(hero.picks));             // plus the abilities chosen at level-ups
+  list.push(...(hero.extra || []));                     // ...and the ones won as rewards
   // cheapest first, most expensive last - whenever it was learned (same cost: the one learned first comes first)
   if (SORT_BY_MP) list.sort((a, b) => SPELLS[a].mp - SPELLS[b].mp);
   if (list.includes('warp')) { list.splice(list.indexOf('warp'), 1); list.push('warp'); }   // Warp always sits at the bottom
@@ -714,6 +785,7 @@ function resetGame() {                 // a brand new game starts with this
   G.ngPlus = 0;          // how many times the game has been finished and started over (New Game+)
   G.difficulty = 'Normal';   // chosen at NEW GAME (see DIFFICULTIES)
   G.run = null;          // the Endless Tower run in progress, if any (see tower.js)
+  G.reef = newReef();    // Coral Deep progress that is kept: checkpoint, deepest floor, bosses beaten
   G.tower = newTower();  // Endless Tower progress that is kept: best floor, checkpoint, relics, bosses beaten
   G.slot = null;         // which save slot this game was last saved to or loaded from
   G.seen = null;         // which world-map tiles we have laid eyes on (for the Tab map); made in main.js

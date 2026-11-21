@@ -128,7 +128,7 @@ canvas.addEventListener('mousedown', e => {
 // Is there something on this tile you would bump into? (wall, water, door, chest, person)
 function isObstacle(map, x, y) {
   const tile = tileAt(map, x, y);
-  if (player.onBoat && map === MAPS.world && tile === '~') return false;         // aboard the boat, water is the road
+  if (player.onBoat && map === MAPS.world && (tile === '~' || tile === '@')) return false;   // aboard the boat, water is the road (the whirlpool too)
   return map.solid.includes(tile) || !!map.doors[x + ',' + y]
       || visibleNpcs(map).some(n => n.x === x && n.y === y);
 }
@@ -235,7 +235,7 @@ function tryMove(dir) {
   const world = map === MAPS.world, boat = G.flags.boat;
   let sailing = false, landing = false;
   if (world && player.onBoat) {
-    if (tile === '~') sailing = true;                                        // keep sailing
+    if (tile === '~' || tile === '@') sailing = true;                        // keep sailing (the whirlpool is water too)
     else if (map.solid.includes(tile) || map.doors[key]) return;             // cannot land on rocks or houses
     else landing = true;                                                     // step ashore: the boat stays behind
   } else if (world && boat && boat.x === nx && boat.y === ny) {
@@ -342,6 +342,7 @@ function arrive() {
 function travel(exit) {
   if (exit.endless === 'next') return endlessFloorCleared();      // stairs in the Endless Tower
   if (exit.endless === 'leave') return askLeaveEndless();
+  if (exit.reef) return askCoralDeep();                           // the whirlpool (js/reef.js)
   const target = MAPS[exit.to];
   const pos = exit.at ? findTile(target, exit.at) : exit;
   if (target.isTown) visitTown(exit.to);
@@ -358,7 +359,7 @@ function openChest(map, x, y) {
   if (map.mimic === x + ',' + y) return mimicFight(map, x, y);    // Endless Tower: this chest bites (see tower.js)
   let loot = [].concat(map.chests[x + ',' + y]);                  // one thing, or a list of things
   const rich = richChests(map);                                   // New Game+: better treasure (see chestLoot in data.js)
-  if (rich) loot = loot.map(chestLoot);
+  if (rich && !map.exactLoot) loot = loot.map(chestLoot);         // (the Coral Deep lists exactly what its chests hold)
   G.flags[`chest:${map.name}:${x},${y}`] = true;                  // tileAt() now shows it as opened
   Sfx.play('chest');
   // hand the things out one after another; each one shows a message (armor also asks a question)
@@ -439,6 +440,11 @@ function enterMap(name, x, y, dir) {
   for (const d in DIRS) held[d] = false;
   Object.assign(player, { map: name, x, y, dir, moving: false, safeSteps: 4, path: null });
   if (name !== 'world') player.onBoat = false;                    // nobody sails indoors
+  else if ('~@'.includes(MAPS.world.rows[y][x])) {                // coming up out of the whirlpool: we are back aboard the boat
+    player.onBoat = true;
+    G.flags.boat = { x, y };
+  }
+  if (MAPS[name].reefFloor) G.reef.deepest = Math.max(G.reef.deepest, MAPS[name].reefFloor);   // the Coral Deep keeps track of how far down we got
   resetFollowers();
 }
 
@@ -897,7 +903,7 @@ function beginNewGame(difficulty) {
   UI.clear();
   mode = 'explore';
   UI.say(['ARTUROS, SORUTRA and RAYEN arrive in the town of Greenvale.',
-          'Arrow keys: move.  Z or Enter: talk / confirm.  X or Esc: menu / cancel.',
+          'Arrow keys: move.  Z or Enter: talk / confirm.  X or Esc: menu / cancel. F sets a favorite ability in battle.',
           'You can also use the mouse: left click to walk somewhere or choose, right click for the menu.',
           'Walk into a door to enter a shop. Leave through the south gate to find monsters.',
           'In battle, the words above a monster tell you what it will do next. Point at a monster to see its weakness.']);
@@ -1095,12 +1101,12 @@ function drawExplore() {
 
   const x0 = Math.max(0, Math.floor(camX / TILE)), y0 = Math.max(0, Math.floor(camY / TILE));
   const waterFrame = Math.floor(performance.now() / 500) % 2;     // the sea has two frames of waves
-  const isWater = (x, y) => x < 0 || y < 0 || x >= map.w || y >= map.h || map.rows[y][x] === '~';
+  const isWater = (x, y) => x < 0 || y < 0 || x >= map.w || y >= map.h || '~@'.includes(map.rows[y][x]);
   for (let y = y0; y <= y0 + 15 && y < map.h; y++) {
     for (let x = x0; x <= x0 + 20 && x < map.w; x++) {
       const tile = tileAt(map, x, y), sx = x * TILE - camX, sy = y * TILE - camY;
       if (map === MAPS.world) seenTiles()[y * map.w + x] = 1;      // everything on screen counts as discovered
-      const variant = tile === '~' ? waterFrame : (x * 31 + y * 17) & 3;      // so not every grass tile looks the same
+      const variant = tile === '~' ? waterFrame : tile === '@' ? Math.floor(performance.now() / 160) % 4 : (x * 31 + y * 17) & 3;   // (the whirlpool turns)      // so not every grass tile looks the same
       if (OBJECT_TILES.includes(tile)) ctx.drawImage(tileImage(map.floorTile || ',', variant), sx, sy);   // floor under stairs, chests...
       ctx.drawImage(tileImage(tile === '$' && richChests(map) ? '$+' : tile, variant), sx, sy);   // New Game+ chests look richer
       if (tile === '$' && richChests(map)) {                      // ...and sparkle
@@ -1364,7 +1370,7 @@ function drawScanlines() {
 // ---------------------------------------------------------------------
 const MAP_COLORS = {
   '~': '#2f73d8', '.': '#4caf50', 'f': '#4caf50', 'T': '#1f6b2a', '^': '#9a9a9a', 'A': '#dfe8f0', 'U': '#3a2420',
-  ':': '#e3c887', '*': '#eef4fa', 'P': '#1f5a3a', '%': '#5a4a48', ',': '#d2b278', '=': '#8b5a2b',
+  ':': '#e3c887', '*': '#eef4fa', 'P': '#1f5a3a', '%': '#5a4a48', ',': '#d2b278', '=': '#8b5a2b', '@': '#bfe6ff',
 };
 const MAP_DOT = 3;                    // pixels per tile on the map screen
 const MAP_UNSEEN = '#39405e';         // colour of places we have not discovered yet
@@ -1410,7 +1416,7 @@ function drawWorldMap() {
     const exit = W.exits[tile];
     R(ctx, MAP_COLORS[tile] || (x >= MAINLAND_W && tile !== '$' && tile !== 'o' ? '#eef4fa' : '#4caf50'), sx, sy, MAP_DOT, MAP_DOT);
     if (tile === '$' || tile === 'o') R(ctx, '#e3c887', sx, sy, MAP_DOT, MAP_DOT);
-    if (exit && MAPS[exit.to].isTown) towns.push([x, y, exit.to]);
+    if (exit && exit.to && MAPS[exit.to].isTown) towns.push([x, y, exit.to]);   // (the whirlpool is an exit with no map of its own)
     else if (exit || tile === 'h') places.push([x, y]);
     if (tile === '$') R(ctx, '#ffd75e', sx, sy, MAP_DOT, MAP_DOT);             // a chest nobody has opened yet
   }

@@ -117,7 +117,10 @@ function makeWorld() {
       v: { to: 'k5', at: 'B', dir: 'up' },           // crypt, back door (where the boss stood)
       I: { to: 't1', at: 'E' },                      // tower
       O: { to: 'm1', at: 'E' },                      // volcano cave
+      '@': { reef: true },                           // the whirlpool: the way down to the Coral Deep (js/reef.js)
     },
+    // the whirlpool only turns in New Game+; before that the tile is ordinary sea
+    dynamic: ch => ch === '@' && !(G.ngPlus > 0) ? '~' : ch,
     // which monsters attack where
     zoneFor: (tile, x, y) => {
       if (tile === '~') return player.onBoat ? 'sea' : null;
@@ -135,6 +138,7 @@ function makeWorld() {
 }
 
 // THE EASTERN SEA: islands made of rough blobs. (Seeded random again, so they never change.)
+const WHIRLPOOL = { x: 66, y: 49 };    // where the whirlpool is on the world map (it must be open sea)
 function buildEasternSea(map) {
   const rows = map.rows, rand = seededRandom(99);
   // a blob of "tile" around (cx, cy); with "only", it only replaces those tiles
@@ -161,6 +165,9 @@ function buildEasternSea(map) {
   blob(54, 40, 9, 6, '%');
   blob(54, 38, 3, 2, 'U', '%');
   put('%', [[54, 41], [53, 41], [55, 41], [54, 42]]); put('O', [[54, 40]]);
+
+  // THE WHIRLPOOL (far south-east, open sea): reached by boat, New Game+ only
+  put('@', [[WHIRLPOOL.x, WHIRLPOOL.y]]);
 
   // TREASURE ISLETS: tiny beaches with a chest each
   const islets = [[46, 25], [77, 45], [70, 4], [46, 51]];

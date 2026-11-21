@@ -18,10 +18,11 @@ function saveGame(slot) {
     ngPlus: G.ngPlus,
     difficulty: G.difficulty,
     tower: G.tower,
+    reef: G.reef,
     savedAt: Date.now(),                            // when this save was made
     seen: Array.from(seenTiles()).join(''),         // the explored part of the world map, as a string of 0s and 1s
     // only the things that change; everything else is rebuilt from data.js
-    party: G.party.map(h => ({ id: h.id, lvl: h.lvl, exp: h.exp, hp: h.hp, mp: h.mp, weapon: h.weapon, armor: h.armor, picks: h.picks, fav: h.fav, bonus: h.bonus })),
+    party: G.party.map(h => ({ id: h.id, lvl: h.lvl, exp: h.exp, hp: h.hp, mp: h.mp, weapon: h.weapon, armor: h.armor, picks: h.picks, fav: h.fav, bonus: h.bonus, extra: h.extra })),
     player: { map: player.map, x: player.x, y: player.y, dir: player.dir, onBoat: player.onBoat },
   };
   try { localStorage.setItem(slotKey(slot), JSON.stringify(data)); G.slot = slot; rememberSlot(slot); return true; }
@@ -91,8 +92,9 @@ function loadGame(slot) {
     G.ngPlus = data.ngPlus || 0;
     G.difficulty = DIFFICULTIES[data.difficulty] ? data.difficulty : 'Normal';     // older saves: Normal
     G.tower = Object.assign(newTower(), data.tower);
+    G.reef = Object.assign(newReef(), data.reef);
     if (!data.tower && G.flags.bestFloor) G.tower.best = G.flags.bestFloor;       // saves from before the tower kept its own notes
-    for (const h of G.party) h.bonus = h.bonus || {};
+    for (const h of G.party) { h.bonus = h.bonus || {}; h.extra = h.extra || []; }
     const owed = payMimicPoints();                                                // Mimics beaten before they gave stat points
     if (owed) showToast(`Mimics beaten earlier: +${owed} to all stats!`, 4);
     noteRecord(r => { r.best = Math.max(r.best, G.tower.best); });               // the all-time record is never behind a save's own best
