@@ -691,7 +691,7 @@ const BUFF_LABEL = { str: 'attack (STR)', def: 'defence (DEF)', int: 'magic defe
 function describeSpell(spell, caster) {
   const amount = Math.min(999, Math.round(spellBase(spell, caster)));
   const who = spell.target === 'allEnemies' ? 'ALL enemies' : 'one enemy';
-  const limit = spell.once ? ' 1x use' : ''; //  ' Once per battle.' 
+  const limit = spell.once ? '' : ''; //  ' Once per battle.' 
   if (spell.sameTarget) return `${spell.hits} strikes on one enemy, about ${amount} damage each.` + limit;
   if (spell.hits) return `${spell.hits} arrows at random enemies, about ${amount} damage each.`;
   if (spell.alwaysWeak) return `About ${amount} damage to ${who}, always as a weak point.` + limit;
