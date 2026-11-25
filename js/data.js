@@ -232,13 +232,13 @@ const ITEMS = {
   //   party: true = works on the whole party at once (no "On whom?")      prize: true = kept out of the item shops
   //   hp / mp = how much it restores      cure = which ailments it lifts      reviveAll = share of HP the fallen get up with
   //   buff = how many boosts it adds (BUFF_MAX is the most a stat can hold)   shield = how many hits it blocks completely
-  bell:      { name: 'Purity Bell',   desc: 'Cures every ailment of the whole party', party: true, prize: true, cure: ['poison', 'sleep', 'silence'] },
-  lifedew:   { name: 'Life Dew',      desc: 'Restores all HP of the whole party',     party: true, prize: true, hp: 9999 },
-  manadew:   { name: 'Mana Dew',      desc: 'Restores all MP of the whole party',     party: true, prize: true, mp: 9999 },
+  bell:      { name: 'Purity Bell',   desc: 'Cures ailments of the whole party', party: true, prize: true, cure: ['poison', 'sleep', 'silence'] },
+  lifedew:   { name: 'Life Dew',      desc: 'Restores 255 HP to the whole party',     party: true, prize: true, hp: 255 },
+  manadew:   { name: 'Mana Dew',      desc: 'Restores 100 MP to the whole party',     party: true, prize: true, mp: 100 },
   megalixir: { name: 'Megalixir',     desc: 'Restores all HP and MP of the whole party', party: true, prize: true, hp: 9999, mp: 9999 },
   plume:     { name: 'Phoenix Plume', desc: 'Revives every fallen hero with full HP', party: true, prize: true, reviveAll: 1 },
-  warhorn:   { name: 'War Horn',      desc: "Raises the whole party's STR to the limit", party: true, prize: true, buff: { str: 3 } },
-  bulwark:   { name: 'Iron Banner',   desc: "Raises the whole party's DEF to the limit", party: true, prize: true, buff: { def: 3 } },
+  warhorn:   { name: 'War Horn',      desc: "Raises the whole party's STR", party: true, prize: true, buff: { str: 1 } },
+  bulwark:   { name: 'Iron Banner',   desc: "Raises the whole party's DEF", party: true, prize: true, buff: { def: 1 } },
   aegis:     { name: 'Aegis Charm',   desc: 'Every hero takes no damage from the next hit', party: true, prize: true, shield: 1 },
 };
 // what the ordinary item shops may sell: everything except the Colosseum prizes
@@ -630,12 +630,12 @@ const PRIZES = {
   bell: 30,
   warhorn: 50,
   bulwark: 50,
-  lifedew: 60,
-  manadew: 80,
-  plume: 100,
-  aegis: 120,
-  megalixir: 200,
-  medal: 500,                          // Champion's Medal: not an item, see below
+  lifedew: 100,
+  manadew: 100,
+  aegis: 250,
+  plume: 500,
+  megalixir: 750,
+  medal: 1000,                          // Champion's Medal: not an item, see below
 };
 const ARENA_MEDAL_POINTS = 1;          // a Champion's Medal adds this to EVERY stat of every hero, forever
 const newArena = () => ({ bp: 0, clears: {}, best: {}, medals: 0 });   // this save's Colosseum notes: BP, wins and best run per tier
