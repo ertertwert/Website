@@ -1352,7 +1352,7 @@ function optionsMenu() {
         desc: 'Choose which track plays on the title screen.' },
       // only while a game is being played (it belongs to that save): how much stronger New Game+ makes the monsters
       ...(mode === 'title' ? [] : [{ label: 'New Game+ boost', right: () => Math.round(ngPlusBoost() * 100) + '%', pick: nextNgBoost,
-        desc: 'Monsters are this much stronger per New Game+ cycle. Kept when you save.' }]),
+        desc: 'Monsters are this much stronger per New Game+ cycle.' }]),
       { label: 'Back', pick: () => UI.pop() },
     ],
   });
