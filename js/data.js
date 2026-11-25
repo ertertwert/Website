@@ -451,9 +451,9 @@ const BOSSES = {
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
 const ENDLESS_BOOST = 0.02;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
 const NG_PLUS_BOOST = 0;
-// The boost can also be changed while playing: pause menu > Options > New Game+ boost (0% to 25%).
+// The boost can also be changed while playing: pause menu > Options > New Game+ boost (0% to 50%).
 // That choice is kept in the save. Until a save has made one, the number above is used.
-const NG_BOOST_CHOICES = [0, 0.05, 0.10, 0.15, 0.20, 0.25];
+const NG_BOOST_CHOICES = [0, 0.05, 0.10, 0.15, 0.20, 0.25, 0.30, 0.35, 0.40, 0.45, 0.50];
 const ngPlusBoost = () => typeof G.ngBoost === 'number' ? G.ngBoost : NG_PLUS_BOOST;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
