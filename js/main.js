@@ -645,7 +645,7 @@ town2.doors[town2.doorAt.house2]  = () => UI.say('The door is locked.');
 const town3 = MAPS.town3;
 town3.doors[town3.doorAt.weapons] = () => UI.say('Rune-forged arms, the finest on the mainland.', () => weaponShop(5, 7));
 town3.doors[town3.doorAt.armor]   = () => UI.say("Hero's Armor, made to order. Well, made to gold.", () => armorShop(5, 7));
-town3.doors[town3.doorAt.items]   = () => UI.say('Elixirs! Rare, pricey, worth it.', () => itemShop(Object.keys(ITEMS)));
+town3.doors[town3.doorAt.items]   = () => UI.say('Elixirs! Rare, pricey, worth it.', () => itemShop(shopItems()));
 town3.doors[town3.doorAt.inn]     = inn;
 town3.doors[town3.doorAt.house1]  = () => UI.say('Scholar: The tower in the desert? Ten floors, they say, each worse than the last.');
 town3.doors[town3.doorAt.house2]  = () => UI.say('Shipwright: My old boat is moored on the shore near town. Beat the Tomb King and she is yours. I am too old to sail.');
@@ -654,7 +654,7 @@ town3.doors[town3.doorAt.house2]  = () => UI.say('Shipwright: My old boat is moo
 const town4 = MAPS.town4;
 town4.doors[town4.doorAt.weapons] = () => UI.say('Orichalcum. Mined under the sea, forged in Port Coral.', () => weaponShop(7, 9));
 town4.doors[town4.doorAt.armor]   = () => UI.say('Nothing on the mainland comes close to this.', () => armorShop(7, 9));
-town4.doors[town4.doorAt.items]   = () => UI.say('Stock up, sailor. The sea is wide.', () => itemShop(Object.keys(ITEMS)));
+town4.doors[town4.doorAt.items]   = () => UI.say('Stock up, sailor. The sea is wide.', () => itemShop(shopItems()));
 town4.doors[town4.doorAt.inn]     = inn;
 town4.doors[town4.doorAt.house1]  = () => UI.say('Sailor: I once saw a chest on a speck of sand far to the south-east. Never went back for it.');
 town4.doors[town4.doorAt.house2]  = () => UI.say('The door is locked.');
@@ -736,6 +736,12 @@ function fieldItems(cur = 0) {
         UI.pop();
         return UI.say(`The charm glows softly. Monsters will mostly leave you alone for the next ${item.ward} steps.`,
                       () => { if (stock().length) fieldItems(menu.cur); });
+      }
+      if (item.party) {                                     // a Colosseum prize: works on everyone, so nobody to choose
+        const msg = useItem(id);
+        if (msg) Sfx.play('item');
+        UI.pop();
+        return UI.say(msg || 'It would have no effect here.', () => { if (stock().length) fieldItems(menu.cur); });
       }
       const show = item.hp && item.mp ? 'both' : item.mp ? 'mp' : 'hp';   // an Ether shows MP, an Elixir both
       const useOn = who => chooseHero(h => {                // who = which hero the cursor starts on
@@ -1344,9 +1350,18 @@ function optionsMenu() {
       { label: 'Sound and music', right: () => Music.muted ? 'OFF' : 'ON', pick: toggleMute, desc: 'Key: M. Toggle on and off.' },
       { label: 'Title music', right: () => titleMusicName(settings.titleMusic), pick: nextTitleMusic,
         desc: 'Choose which track plays on the title screen.' },
+      // only while a game is being played (it belongs to that save): how much stronger New Game+ makes the monsters
+      ...(mode === 'title' ? [] : [{ label: 'New Game+ boost', right: () => Math.round(ngPlusBoost() * 100) + '%', pick: nextNgBoost,
+        desc: 'Monsters are this much stronger per New Game+ cycle. Kept when you save.' }]),
       { label: 'Back', pick: () => UI.pop() },
     ],
   });
+}
+// 0% -> 5% -> ... -> 25% -> 0%  (NG_BOOST_CHOICES in data.js). It takes effect from the next battle.
+function nextNgBoost() {
+  const now = ngPlusBoost();
+  const next = NG_BOOST_CHOICES.find(v => v > now + 0.001);
+  G.ngBoost = next === undefined ? NG_BOOST_CHOICES[0] : next;
 }
 
 // The CRT look: a dark line under every row of game pixels, and darker corners.
@@ -1454,7 +1469,9 @@ function update(dt) {
   // pick the music for where we are (Music.want only reacts when this changes)
   Music.want(mode === 'bye' ? null : mode === 'title' ? 'Title'
            : mode === 'ending' && ending.stage === 2 ? ENDING_QUAKE_MUSIC      // "Wait. Do you feel that?"
-           : mode === 'battle' ? (Battle.boss ? Battle.opts.music || 'Boss' : 'Battle') : MAPS[player.map].music);
+           : mode === 'battle' ? (Battle.opts.music || (Battle.boss ? 'Boss' : 'Battle'))
+           : G.bout ? 'Arena'                                                // between two Colosseum fights the music plays on
+           : MAPS[player.map].music);
   if (mode === 'title' || mode === 'bye' || mode === 'ending') return;
   if (mode === 'battle') { Battle.update(dt); return; }
   // a save from before the game had an ending: the last chest is already open, so the ending starts now

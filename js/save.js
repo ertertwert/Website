@@ -19,6 +19,8 @@ function saveGame(slot) {
     difficulty: G.difficulty,
     tower: G.tower,
     reef: G.reef,
+    arena: G.arena,
+    ngBoost: G.ngBoost,                             // the New Game+ boost chosen in Options (null = the number in data.js)
     savedAt: Date.now(),                            // when this save was made
     seen: Array.from(seenTiles()).join(''),         // the explored part of the world map, as a string of 0s and 1s
     // only the things that change; everything else is rebuilt from data.js
@@ -93,6 +95,9 @@ function loadGame(slot) {
     G.difficulty = DIFFICULTIES[data.difficulty] ? data.difficulty : 'Normal';     // older saves: Normal
     G.tower = Object.assign(newTower(), data.tower);
     G.reef = Object.assign(newReef(), data.reef);
+    G.arena = Object.assign(newArena(), data.arena);
+    G.ngBoost = typeof data.ngBoost === 'number' ? data.ngBoost : null;
+    G.bout = null;
     if (!data.tower && G.flags.bestFloor) G.tower.best = G.flags.bestFloor;       // saves from before the tower kept its own notes
     for (const h of G.party) { h.bonus = h.bonus || {}; h.extra = h.extra || []; }
     const owed = payMimicPoints();                                                // Mimics beaten before they gave stat points

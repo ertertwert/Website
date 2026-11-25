@@ -86,9 +86,9 @@ const WORLD_ROWS = [
   '~~~.............~~~.........,........~~~',
   '~~....TTTT......~~~....TT...,.....TT..~~',
   '~....TTTTTT.....~~~...TTTT..,....TTTT.~~',
-  '~.....TTTT......==,,,,,,,,,,,.....TT..~~',
-  '~.........^^....~~~.....,.............~~',
-  '~...............~~~.....,.............~~',
+  '~.....TTTT..,,,,==,,,,,,,,,,,.....TT..~~',
+  '~.........^^,...~~~.....,.............~~',
+  '~...........N...~~~.....,.............~~',
   '~~......TTT.....~~~.....K......^^^....~~',
   '~~~....TTTTT...~~~~..........^^^^^...~~~',
   '~~~~~.........~~~~~~~~............~~~~~~',
@@ -111,6 +111,7 @@ function makeWorld() {
       J: { to: 'town2', x: 14, y: 18, dir: 'up' },
       K: { to: 'town3', x: 14, y: 18, dir: 'up' },
       L: { to: 'town4', x: 14, y: 18, dir: 'up' },
+      N: { to: 'arena', x: 14, y: 18, dir: 'up' },    // the Colosseum, west of Starfall
       C: { to: 'd1', at: 'E', dir: 'up' },
       c: { to: 'd3', x: 12, y: 9, dir: 'up' },
       V: { to: 'k1', at: 'E' },                      // crypt, front door
@@ -186,7 +187,7 @@ function townBase(name, worldTile, roof) {
   const w = 30, h = 20;
   const lines = Array.from({ length: h }, () => '.'.repeat(w));
   const map = parseMap(name, lines, '.', {
-    solid: 'T#Rrey~D', music: 'Town', isTown: true, doorAt: {},
+    solid: 'T#Rreygn~D', music: 'Town', isTown: true, doorAt: {},
     exits: { X: { to: 'world', at: worldTile, dir: 'down' } },
     innFront: null,                       // where you wake up after losing a battle
   });
@@ -377,6 +378,38 @@ function makeTown4() {                    // PORT CORAL - the harbour town on Co
   return map;
 }
 
+// THE COLOSSEUM - west of Starfall, across the bridge. It works like a town (inn, shop, Warp, saving),
+// but its three gatekeepers sell entry to the fights. What they do is in js/colosseum.js.
+function makeColosseum() {
+  const { map, rect, building } = townBase('arena', 'N', 'g');
+  const w = map.w, h = map.h;
+  rect('n', 0, 0, w, 1); rect('n', 0, h - 1, w, 1); rect('n', 0, 0, 1, h); rect('n', w - 1, 0, 1, h);   // sandstone walls instead of trees
+  rect(':', 1, 1, w - 2, h - 2);          // sand everywhere inside
+  rect(',', 2, 8, 26, 1);                 // the walk in front of the gatekeepers
+  rect(',', 14, 5, 2, 14);                // main road from the gate to the great doors
+  rect(',', 2, 14, 26, 1);                // street in front of the shops
+  rect('X', 14, 19, 2, 1);
+
+  building('arena',  'COLOSSEUM', 9, 1, 12, 4);    // the arena itself (its doors only open for a gatekeeper)
+  building('prizes', 'PRIZES',    3, 11);
+  building('items',  'ITEMS',     9, 11);
+  building('inn',    'INN',      22, 11);
+
+  // the three gatekeepers (arena: which tier they sell) and the herald who keeps the records
+  map.npcs = [
+    { x: 9,  y: 6, name: 'Bronze Gatekeeper', sprite: 'npcGuard', arena: 'bronze' },
+    { x: 12, y: 6, name: 'Silver Gatekeeper', sprite: 'npcGuard', arena: 'silver' },
+    { x: 17, y: 6, name: 'Gold Gatekeeper',   sprite: 'npcGuard', arena: 'gold' },
+    { x: 20, y: 6, name: 'Herald',            sprite: 'npcElder', herald: true },
+    { x: 18, y: 15, name: 'Veteran', sprite: 'npcBoy', lines: ['Ten fights, one after another, and nobody patches you up in between. Bring Phoenix Leaves.', 'Lose, and every point from that run is gone. Withdraw in time, or win all ten, and the real points come.'] },
+    { x: 7,  y: 15, name: 'Fan',     sprite: 'npcGirl', lines: ['The prize counter only takes Battle Points. Gold is no good there!', 'I am saving up for an Aegis Charm. It stops one hit on every hero, no matter how hard.'] },
+  ];
+  for (const [text, x] of [['BRONZE', 9], ['SILVER', 12], ['GOLD', 17]]) map.labels.push({ text, x: x * TILE + 8, y: 5 * TILE + 5 });
+  map.music = 'Colosseum';                // Colosseum1.mp3... (Town music if there are none)
+  map.title = 'Colosseum';
+  return map;
+}
+
 // ---------------------------------------------------------------------
 // DUNGEON MAPS
 // makeDungeon turns a grid of letters into a dungeon floor. Options:
@@ -550,6 +583,7 @@ const MAPS = {
   town2: makeTown2(),
   town3: makeTown3(),
   town4: makeTown4(),
+  arena: makeColosseum(),
   world: makeWorld(),
   // the cave (hand-drawn)
   d1: makeDungeon('d1', CAVE_1, { ...CAVE, exits: { E: { to: 'world', at: 'C', dir: 'up' }, '>': { to: 'd2', at: '<' } },

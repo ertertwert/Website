@@ -14,7 +14,7 @@
 // =====================================================================
 
 const BATTLE_ROWS = 7;             // lines shown at once in the Spells / Abilities / Item lists (longer lists scroll)
-const STATUS_TAGS = { poison: ['Psn', '#9be36a'], sleep: ['Slp', '#b8c4ff'], silence: ['Sil', '#c8c8c8'], regen: ['Rgn', '#7dff9a'], refresh: ['Rfr', '#9fd0ff'] };
+const STATUS_TAGS = { poison: ['Psn', '#9be36a'], sleep: ['Slp', '#b8c4ff'], silence: ['Sil', '#c8c8c8'], regen: ['Rgn', '#7dff9a'], refresh: ['Rfr', '#9fd0ff'], shield: ['Shd', '#ffe98a'] };
 const short = hero => hero.name.slice(0, 3);
 const aOrAn = name => (/^[AEIOU]/i.test(name) ? 'an ' : 'a ') + name;   // "a Potion", "an Ether"            // "ART", "SOR", "RAY"
 
@@ -28,11 +28,14 @@ const Battle = {
   // ---------- starting ----------
   // opts (all optional): enemies: [{kind, lvl}] for a fixed fight, boss: true, onWin: function,
   //                      list: which monsters can appear, levelBonus: extra levels (Endless Tower)
+  //                      music: the music place to play, onLose: function (instead of waking up at the inn),
+  //                      noEscape: no running, noRewards: no EXP / gold / drops, keepDown: the fallen stay down afterwards (the Colosseum)
   start(zone, opts = {}) {
     mode = 'battle';
     this.zone = zone;
     this.opts = opts;
     this.boss = !!opts.boss;
+    this.noEscape = this.boss || !!opts.noEscape;
     this.fled = false;
     this.queue = []; this.msg = null; this.after = null; this.auto = false;
     this.hovered = null; this.taunt = null;
@@ -257,7 +260,9 @@ const Battle = {
   itemMenu() {
     const items = Object.keys(ITEMS).filter(id => G.items[id] > 0 && !ITEMS[id].ward).map(id => ({   // no Ward Charms in battle
       label: ITEMS[id].name, right: 'x' + G.items[id], desc: describeItem(id),
-      pick: () => this.pickAlly(t => this.setCommand({ type: 'item', id, target: t })),
+      // (a Colosseum prize works on everybody, so there is nobody to choose)
+      pick: () => ITEMS[id].party ? this.setCommand({ type: 'item', id, target: null })
+                                  : this.pickAlly(t => this.setCommand({ type: 'item', id, target: t })),
     }));
     if (!items.length) items.push({ label: 'No items', disabled: true });
     UI.openMenu({ x: 90, y: 132, maxBottom: 208, w: 126, rows: BATTLE_ROWS, items });
@@ -309,7 +314,7 @@ const Battle = {
 
     if (this.cmds.some(c => c && c.type === 'run')) {
       this.queue.push(() => {
-        if (this.boss) { Sfx.play('buzz'); return 'There is no escape!'; }
+        if (this.noEscape) { Sfx.play('buzz'); return 'There is no escape!'; }
         if (Math.random() < 0.6) { this.fled = true; Sfx.play('run'); return 'The party ran away!'; }
         Sfx.play('buzz');
         return "Couldn't escape!";
@@ -379,7 +384,7 @@ const Battle = {
       const name = ITEMS[cmd.id].name;
       if (G.items[cmd.id] <= 0) return `${u.name} has no ${name} left!`;
       Sfx.play('item');
-      return `${u.name} uses a ${name}. ` + (useItem(cmd.id, cmd.target) || 'But nothing happens.');
+      return `${u.name} uses ${aOrAn(name)}. ` + (useItem(cmd.id, cmd.target) || 'But nothing happens.');
     }
     return null;
   },
@@ -387,6 +392,11 @@ const Battle = {
   foesOf(u) { return u.isHero ? this.aliveEnemies() : aliveHeroes(); },
 
   hurt(target, dmg) {                                    // returns the text for one hit
+    if (target.status.shield) {                          // Aegis Charm: this hit does nothing at all
+      if (--target.status.shield <= 0) delete target.status.shield;
+      target.flash = 0.2;
+      return `The shield around ${target.name} takes the blow and shatters. No damage!`;
+    }
     if (target.isHero && dmg >= target.hp && hasRelic('twins') && !this.crestUsed) {   // relic: Twin Crest
       this.crestUsed = true;
       target.hp = 1; target.flash = 0.35;
@@ -458,7 +468,7 @@ const Battle = {
     Sfx.play(s.kind === 'damage' ? 'spell' : s.kind === 'warp' ? 'warp' : ['heal', 'revive', 'cure', 'regen', 'refresh', 'healself'].includes(s.kind) ? 'heal' : 'buff');
     if (s.kind === 'warp') {                             // Warp in battle: a sure escape (but not from bosses)
       a.mp -= s.mp;
-      if (this.boss) return out + 'But a powerful force holds the party in place!';
+      if (this.noEscape) return out + 'But a powerful force holds the party in place!';
       this.fled = true;
       return out + 'The party is whisked away from the fight!';
     }
@@ -585,6 +595,10 @@ const Battle = {
   },
   victory() {
     this.auto = false;
+    if (this.opts.noRewards) {                           // the Colosseum pays in Battle Points, afterwards
+      Sfx.play('victory');
+      return this.say(['Victory!'], () => this.finish('win'));
+    }
     const bonus = G.run ? G.run.expBonus : 1;            // Endless Tower boon
     const exp = Math.round(this.enemies.reduce((s, e) => s + e.exp, 0) * bonus);
     const gold = this.enemies.reduce((s, e) => s + e.gold, 0);
@@ -609,12 +623,12 @@ const Battle = {
   finish(result) {
     for (const h of G.party) {
       h.buff = { str: 0, def: 0, int: 0 }; h.status = {}; h.defending = false;     // effects end with the battle
-      if (h.hp <= 0) h.hp = 1;                           // knocked-out heroes get up with 1 HP
+      if (h.hp <= 0 && !this.opts.keepDown) h.hp = 1;    // knocked-out heroes get up with 1 HP
     }
     UI.clear();
     mode = 'explore';
     this.boss = false;
-    if (result === 'lose') onPartyDefeated();            // defined in main.js
+    if (result === 'lose') { if (this.opts.onLose) this.opts.onLose(); else onPartyDefeated(); }   // (onPartyDefeated is in main.js)
     if (result === 'win' && this.opts.onWin) this.opts.onWin();
   },
 
@@ -705,6 +719,7 @@ const BACKDROPS = {
   crypt:   ['#1c160c', '#6b5330', '#4a3a20', 'pillars', '#4a3a20'],
   tower:   ['#141a2e', '#4a5578', '#333c5c', 'windows', '#0a0e1c'],
   magma:   ['#1c0c0a', '#4a2a24', '#38201c', 'lava',    '#1c0c0a'],
+  arena:   ['#8fd0f0', '#e3c887', '#cdb06c', 'stands',  '#b89a60'],     // the Colosseum: sand, and a crowd
   // the Coral Deep: under water, with more and brighter coral the deeper you are (the last entry = the coral colours)
   reefa:   ['#0c2f58', '#2a5f86', '#3a78a0', 'coral',   ['#c84848']],
   reefb:   ['#0d4268', '#2f7f96', '#48a0b4', 'coral',   ['#e85050', '#f0c030']],
@@ -753,6 +768,17 @@ function drawBackdrop(zone) {
       R(ctx, c, x + 4, HORIZON - h * 0.45, 6, 3); R(ctx, c, x + 8, HORIZON - h * 0.45 - 9, 3, 10);                     // right arm
       R(ctx, tint(c, 1.35), x, HORIZON - h, 2, 2); R(ctx, tint(c, 1.35), x - 6, HORIZON - h * 0.7 - 7, 2, 2); R(ctx, tint(c, 1.35), x + 8, HORIZON - h * 0.45 - 9, 2, 2);
     }
+  }
+  if (scenery === 'stands') {                                   // the Colosseum: four rows of spectators and three banners
+    R(ctx, tint(color, 1.25), 0, 50, SCREEN_W, 6);
+    for (let row = 0; row < 4; row++) {
+      const y = 56 + row * 14;
+      R(ctx, tint(color, 0.8 + row * 0.08), 0, y, SCREEN_W, 14); R(ctx, tint(color, 0.55), 0, y + 12, SCREEN_W, 2);
+      for (let x = 3 + (row % 2) * 5; x < SCREEN_W - 4; x += 10) {
+        R(ctx, ['#d03030', '#2f6fb5', '#f1c40f', '#f4f4f4', '#3d9142'][(x * 7 + row * 13) % 5], x, y + 5, 5, 7); R(ctx, '#f2c79a', x + 1, y + 2, 3, 3);
+      }
+    }
+    for (const x of [50, 160, 270]) { R(ctx, '#6b4423', x - 1, 22, 2, 30); R(ctx, '#8a2020', x - 7, 24, 14, 22); R(ctx, '#f1c40f', x - 7, 24, 14, 2); R(ctx, '#f1c40f', x - 2, 31, 4, 6); }
   }
   if (scenery === 'lava') {
     mound(80, 34, 1.6, color); mound(230, 46, 1.4, color);

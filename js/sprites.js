@@ -519,6 +519,101 @@ const HI_ART = {
     p.poly('#111', 18, 9, 30, 9, 30, 12.5, 18, 12.5);
     p.el(21, 10.8, 1.5, 1.2, c.e); p.el(27, 10.8, 1.5, 1.2, c.e);
   },
+  // ---- the three Colosseum champions (always drawn boss-sized) ----
+  gladiator(p, c) {                                        // Bronze: bare-chested bruiser, crested helmet, round shield, short sword
+    const sd = tint(c.s, 0.7), hd = tint(c.h, 0.62), hl = tint(c.h, 1.25);
+    p.poly('#dfe6ee', 39.5, 30, 41.5, 6, 43.5, 30); p.line('#9fb0c8', 1, 41.5, 9, 41.5, 30);     // sword
+    p.poly(c.y, 37, 30, 46, 30, 46, 32.2, 37, 32.2); p.poly('#6b4423', 40.5, 32, 42.5, 32, 42.5, 36, 40.5, 36);
+    for (const s of [1, -1]) { const X = side(s);                                                // legs, greaves, sandals
+      p.poly(sd, X(2.5), 34, X(9.5), 34, X(9.5), 44, X(3), 44); p.poly(c.s, X(3.5), 34, X(8.6), 34, X(8.6), 43, X(4), 43);
+      p.poly(hd, X(2.5), 38.5, X(9.8), 38.5, X(9.5), 45, X(2.8), 45); p.poly(c.h, X(3.6), 39, X(8.6), 39, X(8.4), 44, X(3.8), 44);
+      p.el(X(6), 45.6, 5, 1.8, c.d);
+    }
+    p.poly(sd, 11.5, 18, 36.5, 18, 33, 33, 15, 33); p.poly(c.s, 12.8, 18.6, 35.2, 18.6, 32, 32, 16, 32);   // broad bare chest
+    p.line(sd, 1.1, 24, 21, 24, 31); p.line(sd, 1.1, 16.5, 24.5, 22.5, 25.5); p.line(sd, 1.1, 25.5, 25.5, 31.5, 24.5);
+    p.poly(c.d, 13.5, 19, 17, 19, 33.5, 30.5, 31.5, 32.5);                                       // strap across the chest
+    p.el(22, 23.5, 2, 2, c.y);
+    for (let x = 14; x < 34; x += 4) p.poly((x / 4) % 2 ? c.c : tint(c.c, 0.72), x, 31.5, x + 4, 31.5, x + 3.6, 39, x + 0.4, 39);   // skirt of leather strips
+    p.poly(tint(c.y, 0.7), 13, 30, 35, 30, 35, 33, 13, 33); p.poly(c.y, 13.5, 30.4, 34.5, 30.4, 34.5, 32.2, 13.5, 32.2); p.el(24, 31.4, 2.2, 2.2, hl);
+    p.el(37.5, 25, 3.6, 6.8, sd); p.el(37.2, 24.6, 2.8, 6, c.s); p.el(40, 31.5, 3.1, 3.1, hd);   // sword arm
+    p.el(36.5, 20, 5.8, 4.6, hd); p.el(36.2, 19.6, 4.9, 3.8, c.h); p.el(34.5, 18.4, 1.6, 1.1, hl);   // its shoulder plate
+    p.el(11, 23, 3.6, 5.5, sd); p.el(11.2, 22.6, 2.8, 4.8, c.s);                                 // shield arm
+    p.el(9.5, 30, 9, 10.2, hd); p.el(9.5, 29.6, 8, 9.2, c.w); p.el(9.5, 29.6, 5.6, 6.6, tint(c.w, 0.78));   // round shield
+    p.el(9.5, 29.6, 2.4, 2.8, c.y); p.el(6, 24.5, 2, 1.4, tint(c.w, 1.3));
+    p.el(24, 11.5, 8.8, 9.3, hd); p.el(23.6, 11, 7.9, 8.4, c.h); p.el(19.5, 6.2, 2.6, 1.6, hl);  // helmet
+    p.poly(c.s, 18.5, 10, 29.5, 10, 28.6, 17.5, 19.4, 17.5);                                     // open face
+    p.poly('#111', 19, 10, 29, 10, 28.6, 11.4, 19.4, 11.4);
+    p.el(21.3, 13, 1.3, 1.1, c.e); p.el(26.7, 13, 1.3, 1.1, c.e); p.line(sd, 1, 22, 16, 26, 16);
+    p.line(hd, 1.6, 24, 4, 24, 14.5);                                                            // nose guard
+    p.poly(tint(c.y, 0.7), 19.5, 4.5, 21.5, 0.8, 26.5, 0.8, 28.5, 4.5, 27, 6.5, 21, 6.5);        // crest
+    p.poly(c.y, 20.6, 4.4, 22, 1.6, 26, 1.6, 27.4, 4.4, 26.6, 5.6, 21.4, 5.6);
+    for (const x of [22.4, 24, 25.6]) p.line(tint(c.y, 0.7), 0.6, x, 2, x, 5.4);
+  },
+  beastmaster(p, c) {                                      // Silver: furs, a horned skull mask, a whip curling overhead
+    const sd = tint(c.s, 0.7), fd = tint(c.c, 0.65), bone = c.h, bd = tint(c.h, 0.72);
+    p.line(c.d, 1.7, 40.5, 12, 45, 5, 37, 1.6, 24, 3, 11, 1.6, 4.5, 6, 3, 13.5);                 // the whip
+    p.el(3, 14, 1.5, 1.5, c.e);
+    for (const s of [1, -1]) { const X = side(s);                                                // legs and fur boots
+      p.poly(sd, X(2.5), 33, X(9), 33, X(9.5), 44, X(3), 44); p.poly(c.s, X(3.5), 33, X(8.2), 33, X(8.6), 43, X(4), 43);
+      p.el(X(6.2), 43.5, 5, 3.4, fd); p.el(X(6.2), 43, 4.2, 2.6, c.c); p.el(X(6.2), 46, 5, 1.6, c.d);
+    }
+    p.poly(sd, 14, 19, 34, 19, 32, 34, 16, 34); p.poly(c.s, 15, 19.6, 33, 19.6, 31.2, 33.2, 16.8, 33.2);   // lean body
+    p.line(sd, 1, 24, 23, 24, 31); p.line(c.e, 1.1, 18, 25, 22, 27); p.line(c.e, 1.1, 30, 25, 26, 27);     // war paint
+    p.poly(fd, 14.5, 30.5, 33.5, 30.5, 31, 40, 24, 36.5, 17, 40); p.poly(c.c, 15.6, 31, 32.4, 31, 30.4, 38.4, 24, 35.3, 17.6, 38.4);   // pelt round the hips
+    p.poly(c.d, 15, 30, 33, 30, 33, 32, 15, 32); p.el(24, 31, 1.8, 1.8, bone);
+    for (let i = 0; i < 5; i++) p.el(18 + i * 3, 21.5 + (2 - Math.abs(i - 2)) * 0.9, 0.9, 1.5, bone);   // necklace of teeth
+    p.line(sd, 5.8, 35, 21, 40.5, 13); p.line(c.s, 4.2, 35, 21, 40.5, 13); p.el(40.8, 12, 2.8, 2.8, c.s); p.el(40.8, 12, 1.4, 1.4, sd);   // whip arm, raised
+    p.line(sd, 5.8, 13, 21, 8.5, 31); p.line(c.s, 4.2, 13, 21, 8.5, 31);                          // claw arm
+    p.el(8, 32, 3.2, 3, c.d);
+    for (const x of [5.5, 8, 10.5]) p.poly(bone, x - 1, 33.5, x + 1, 33.5, x - 0.6, 39.5);
+    for (const s of [1, -1]) { const X = side(s);                                                // fur mantle
+      p.el(X(11), 20, 7.4, 5.2, fd); p.el(X(11), 19.4, 6.4, 4.2, c.c);
+      for (const dx of [6, 10, 14]) p.poly(c.c, X(dx - 2), 22, X(dx + 2), 22, X(dx), 27);
+      p.el(X(9), 18, 2.4, 1.3, tint(c.c, 1.3));
+    }
+    p.el(24, 13.5, 6.6, 7, sd); p.el(23.8, 13.2, 5.8, 6.2, c.s);                                  // face
+    p.line('#111', 1.1, 21.5, 17, 24, 18, 26.5, 17);                                              // grin
+    for (const s of [1, -1]) { const X = side(s);                                                // horns of the skull mask
+      p.poly(bd, X(4.5), 8.5, X(11), 4.5, X(13.5), 0.8, X(10.5), 8.5); p.poly(bone, X(5.4), 8, X(11), 5.2, X(12.8), 2.4, X(10), 7.8);
+    }
+    p.el(24, 9.8, 7.2, 5.2, bd); p.el(24, 9.4, 6.4, 4.4, bone);                                   // skull mask over the brow
+    p.poly(bone, 19.5, 12.5, 21.5, 12.5, 20.5, 15.5); p.poly(bone, 26.5, 12.5, 28.5, 12.5, 27.5, 15.5);   // fangs
+    p.el(21.2, 10.6, 1.9, 1.7, '#111'); p.el(26.8, 10.6, 1.9, 1.7, '#111');
+    p.el(21.2, 10.8, 0.9, 0.9, c.e); p.el(26.8, 10.8, 0.9, 0.9, c.e);
+    p.poly('#111', 23.4, 12, 24.6, 12, 24, 13.6);
+  },
+  grandchampion(p, c) {                                    // Gold: winged helm, red cape, both hands on a greatsword
+    const hd = tint(c.h, 0.62), hl = tint(c.h, 1.3), cd = tint(c.c, 0.65), cl = tint(c.c, 1.3), rd = tint(c.r, 0.6);
+    p.poly(rd, 9, 17, 39, 17, 46.5, 45.5, 1.5, 45.5); p.poly(c.r, 10.4, 18, 37.6, 18, 44.6, 44.5, 3.4, 44.5);   // cape
+    for (const x of [8, 40]) p.line(rd, 1.2, x, 24, x + (x < 24 ? -2.5 : 2.5), 44);
+    for (const s of [1, -1]) { const X = side(s);                                                // legs and boots
+      p.poly(cd, X(2.5), 33, X(9), 33, X(9.5), 45, X(2), 45); p.poly(c.c, X(3.3), 33, X(8.2), 33, X(8.6), 43.5, X(3), 43.5);
+      p.poly(c.y, X(3), 38, X(8.6), 38, X(8.6), 39.4, X(3), 39.4); p.el(X(6), 45.4, 5.2, 2, c.d);
+    }
+    p.poly(cd, 13, 18.5, 35, 18.5, 33, 35, 15, 35); p.poly(c.c, 14, 19, 34, 19, 32, 34, 16, 34);  // breastplate
+    p.poly(cl, 16, 20.5, 21.5, 20.5, 20.5, 26, 17, 26);
+    p.poly(c.y, 14.5, 19, 33.5, 19, 33.2, 20.6, 14.8, 20.6); p.poly(c.d, 15, 32, 33, 32, 33, 35, 15, 35); p.poly(c.y, 15, 32, 33, 32, 33, 33, 15, 33);
+    for (const s of [1, -1]) { const X = side(s);                                                // arms meeting on the hilt
+      p.line(cd, 6, X(13), 22, X(4.5), 29.5); p.line(c.c, 4.4, X(13), 22, X(4.5), 29.5);
+      p.el(X(13.5), 19, 7.2, 5.6, hd); p.el(X(13.3), 18.5, 6.2, 4.6, c.h); p.el(X(11), 17, 2.2, 1.2, hl);   // pauldron
+      p.poly(hd, X(14), 15.5, X(19.5), 9.5, X(18.5), 16.5); p.poly(c.y, X(10), 22.2, X(17), 22.2, X(17), 23.4, X(10), 23.4);
+      p.el(X(3.6), 29.8, 3.2, 3.2, hd); p.el(X(3.4), 29.5, 2.4, 2.4, c.h);                        // gauntlet
+    }
+    p.poly('#9fb0c8', 21, 30.5, 27, 30.5, 26, 45.5, 24, 47.6, 22, 45.5); p.poly('#eef4fa', 22, 30.5, 26, 30.5, 25.2, 45, 24, 46.4, 22.8, 45);   // greatsword, point down
+    p.line('#9fb0c8', 0.8, 24, 31, 24, 45);
+    p.poly(tint(c.y, 0.7), 15.5, 27.6, 32.5, 27.6, 32.5, 31, 15.5, 31); p.poly(c.y, 16.2, 28.2, 31.8, 28.2, 31.8, 30.2, 16.2, 30.2);
+    p.poly('#6b4423', 22.8, 21.5, 25.2, 21.5, 25.2, 28, 22.8, 28); p.el(24, 20.6, 2.1, 2.1, c.y); p.el(24, 29.2, 1.5, 1.2, c.e);
+    for (const s of [1, -1]) { const X = side(s);                                                // wings on the helm
+      p.poly('#c9d2dc', X(6.5), 9.5, X(17.5), 0.8, X(14), 5.6, X(18.5), 5, X(14), 8.8, X(17), 10.4, X(7.5), 13);
+      p.poly('#f8fbff', X(7.2), 9.6, X(15.5), 2.8, X(12.6), 6.8, X(16.4), 6.2, X(12.6), 9.6, X(8), 11.6);
+    }
+    p.el(24, 10.5, 8.8, 9.3, hd); p.el(23.6, 10, 7.9, 8.4, c.h); p.el(19.6, 5.4, 2.6, 1.6, hl);   // helmet
+    p.poly('#111', 17.6, 9, 30.4, 9, 30.4, 11.8, 25.2, 11.8, 25.2, 17.5, 22.8, 17.5, 22.8, 11.8, 17.6, 11.8);   // T-shaped visor
+    p.el(20.6, 10.4, 1.5, 1, c.e); p.el(27.4, 10.4, 1.5, 1, c.e);
+    p.poly(tint(c.y, 0.7), 18.5, 4.6, 19.5, 0.8, 22, 3, 24, 0.5, 26, 3, 28.5, 0.8, 29.5, 4.6, 28.5, 6, 19.5, 6);   // crown
+    p.poly(c.y, 19.6, 4.4, 20.2, 2.2, 22, 3.8, 24, 1.8, 26, 3.8, 27.8, 2.2, 28.4, 4.4, 27.8, 5.2, 20.2, 5.2);
+    p.el(24, 4.3, 0.9, 0.9, c.e);
+  },
   boss(p, c) {                                             // the horned lords
     const rd = tint(c.r, 0.6), rl = tint(c.r, 1.25);
     p.el(24, 44, 23, 10, tint(c.d, 0.7)); p.el(24, 43, 21.5, 8.5, c.d); p.poly(tint(c.d, 1.4), 6, 41, 14, 37, 12, 44);   // cloak
@@ -873,7 +968,16 @@ HI_ART.urchin = (p, c) => {                             // a = body, d = spines,
   for (const s of [1, -1]) { const X = side(s); p.el(X(4.5), 25, 3, 3.4, '#fff'); p.el(X(4.5), 25.6, 1.4, 1.9, c.e); }
   p.line('#111', 1.5, 20, 32, 24, 33.5, 28, 32);
 };
+// The champions have no small map sprite of their own: each borrows a 16x16 shape (a COPY, so that it can have its own painter).
+const GLADIATOR = KNIGHT.slice(), BEASTMASTER = BRUTE.slice(), GRANDCHAMPION = KNIGHT.slice();
+Object.assign(MONSTER_ART, {
+  champbronze: [GLADIATOR,     { ...knight('#b9793a', '#a02c2c', '#4a3222', '#111111', '#d03030'), s: '#d9a070', w: '#c58a3c' }],
+  champsilver: [BEASTMASTER,   brute('#c9966a', '#8a8f99', '#2a2420', '#efe6c8', '#ff4040')],
+  champgold:   [GRANDCHAMPION, { ...knight('#ffd75e', '#f1c40f', '#7a5a10', '#60e8ff', '#fff2a8'), r: '#b01e2e' }],
+});
+for (const name of ['champbronze', 'champsilver', 'champgold']) SPRITES[name] = makeSprite(...MONSTER_ART[name]);
 const HI_PAINTERS = new Map([
+  [GLADIATOR, HI_ART.gladiator], [BEASTMASTER, HI_ART.beastmaster], [GRANDCHAMPION, HI_ART.grandchampion],
   [SLIME, HI_ART.slime], [BAT, HI_ART.bat], [WOLF, HI_ART.wolf], [SPIDER, HI_ART.spider], [GHOST, HI_ART.ghost],
   [BRUTE, HI_ART.brute], [KNIGHT, HI_ART.knight], [HUMAN, HI_ART.human],
   [BOSS, HI_ART.boss], [SKULLKING, HI_ART.skullking], [DRAGON, HI_ART.dragon], [MIMIC, HI_ART.mimic],
@@ -985,6 +1089,20 @@ const TILE_PAINTERS = {
   'J': townIcon('.', '#2f6fb5'),                           // Sunreach
   'K': townIcon('.', '#3d8f55'),                           // Starfall
   'L': townIcon('.', '#e08a2a'),                           // Port Coral
+  'N': (g, v) => {                                         // the Colosseum on the world map
+    TILE_PAINTERS['.'](g, v);
+    R(g, '#00000030', 2, 14, 13, 2);
+    R(g, '#c9b78c', 1, 7, 14, 7); R(g, '#e8d8b0', 2, 5, 12, 3); R(g, '#d8c69a', 1, 8, 14, 1); R(g, '#a08a5a', 4, 4, 8, 1);
+    for (const x of [2, 5, 8, 11]) { R(g, '#6b4423', x, 10, 2, 4); R(g, '#8a7a55', x, 6, 2, 2); }
+    R(g, '#6b4423', 8, 0, 1, 5); R(g, '#d03030', 9, 0, 3, 2);
+  },
+  'n': g => {                                              // sandstone wall (around the Colosseum)
+    R(g, '#d8c69a', 0, 0, 16, 16); R(g, '#e8d8b0', 0, 0, 16, 1);
+    for (const y of [7, 15]) R(g, '#a8956a', 0, y, 16, 1);
+    for (const [x, y] of [[5, 0], [12, 0], [1, 8], [9, 8]]) R(g, '#a8956a', x, y, 1, 7);
+    R(g, '#c9b78c', 6, 3, 4, 2); R(g, '#c9b78c', 11, 11, 3, 2);
+  },
+  'g': roof('#c8a030', '#96761e'),                         // golden roof (the Colosseum)
   '#': g => {                                              // house wall with window
     R(g, '#e8d8b0', 0, 0, 16, 16); R(g, '#d8c69a', 0, 0, 16, 1); R(g, '#c9b78c', 0, 15, 16, 1);
     R(g, '#6b4423', 4, 3, 8, 8); R(g, '#7fc4ee', 5, 4, 6, 6); R(g, '#bfe3ff', 5, 4, 2, 2); R(g, '#6b4423', 7, 4, 1, 6); R(g, '#6b4423', 5, 6, 6, 1);

@@ -228,7 +228,21 @@ const ITEMS = {
   remedy:   { name: 'Remedy',         price: 200, desc: 'Cures everything', cure: ['poison', 'sleep', 'silence'] },
   // not used on a hero and not usable in battle: for the next "ward" steps, far fewer monsters attack
   ward:     { name: 'Ward Charm',   price: 80,  desc: 'Fewer battles', ward: 100 },
+  // --- COLOSSEUM PRIZES: not sold for gold anywhere, only for Battle Points (see PRIZES further down).
+  //   party: true = works on the whole party at once (no "On whom?")      prize: true = kept out of the item shops
+  //   hp / mp = how much it restores      cure = which ailments it lifts      reviveAll = share of HP the fallen get up with
+  //   buff = how many boosts it adds (BUFF_MAX is the most a stat can hold)   shield = how many hits it blocks completely
+  bell:      { name: 'Purity Bell',   desc: 'Cures every ailment of the whole party', party: true, prize: true, cure: ['poison', 'sleep', 'silence'] },
+  lifedew:   { name: 'Life Dew',      desc: 'Restores all HP of the whole party',     party: true, prize: true, hp: 9999 },
+  manadew:   { name: 'Mana Dew',      desc: 'Restores all MP of the whole party',     party: true, prize: true, mp: 9999 },
+  megalixir: { name: 'Megalixir',     desc: 'Restores all HP and MP of the whole party', party: true, prize: true, hp: 9999, mp: 9999 },
+  plume:     { name: 'Phoenix Plume', desc: 'Revives every fallen hero with full HP', party: true, prize: true, reviveAll: 1 },
+  warhorn:   { name: 'War Horn',      desc: "Raises the whole party's STR to the limit", party: true, prize: true, buff: { str: 3 } },
+  bulwark:   { name: 'Iron Banner',   desc: "Raises the whole party's DEF to the limit", party: true, prize: true, buff: { def: 3 } },
+  aegis:     { name: 'Aegis Charm',   desc: 'Every hero takes no damage from the next hit', party: true, prize: true, shield: 1 },
 };
+// what the ordinary item shops may sell: everything except the Colosseum prizes
+const shopItems = () => Object.keys(ITEMS).filter(id => !ITEMS[id].prize);
 
 // ---------------------------------------------------------------------
 // ENEMIES
@@ -339,6 +353,10 @@ const ENEMIES = {
   prism:     { name: 'Prism Golem', sprite: 'prism', big: true, hp: 32, mp: 14, str: 2.0, def: 2.0, int: 1.9, mag: 1.9, exp: 600, gold: 5000, boss: true, shifting: true, spell: 'darkwave' },
   suntwin:   { name: 'Sol',  sprite: 'suntwin',  hp: 18, mp: 8,  str: 2.3, def: 1.7, int: 1.4, mag: 1.2, exp: 350, gold: 3000, boss: true, twin: true },
   moontwin:  { name: 'Luna', sprite: 'moontwin', hp: 16, mp: 14, str: 1.5, def: 1.5, int: 1.9, mag: 2.0, exp: 350, gold: 3000, boss: true, twin: true },
+  // --- the Colosseum only (see js/colosseum.js): the champion who waits in the last fight of each tier
+  champbronze: { name: 'Brakk the Bull',     sprite: 'champbronze', big: true, hp: 12, mp: 6,  str: 1.9, def: 1.7, int: 1.3, mag: 1.2, exp: 0, gold: 0, boss: true, rally: true },
+  champsilver: { name: 'Lady Sable',  sprite: 'champsilver', big: true, hp: 24, mp: 14, str: 2.1, def: 1.9, int: 1.8, mag: 1.8, exp: 0, gold: 0, boss: true, rally: true },
+  champgold:   { name: 'Aurelian', sprite: 'champgold', big: true, hp: 56, mp: 30, str: 2.4, def: 2.4, int: 2.4, mag: 2.0, exp: 0, gold: 0, boss: true, charge: true, frenzy: 0.5, blast: 'TRIUMPH' },
   skydragon: { name: 'Sky Dragon', sprite: 'dragon', big: true, hp: 20, mp: 12, str: 1.8, def: 1.5, int: 1.5, mag: 1.7, exp: 300, gold: 1000, spell: 'firebreath' },
 };
 // WEAKNESSES and tricks: [weak to, resists, spells it can cast, chance that its attack poisons]
@@ -366,6 +384,7 @@ const ENEMY_TRAITS = {
   reefwarden: ['bolt', 'ice', ['tidalwave']], sirenqueen: ['wind', 'ice', ['nightmare', 'mindspike', 'tidalwave', 'shriek']],
   hydra: [null, null, ['toxiccloud', 'tidalwave']], leviathan: [null, null, ['tidalwave', 'shriek', 'mindspike']],
   mender: ['fire'], warcaller: ['bolt'], hexer: ['wind', 'ice', ['hush', 'lullaby', 'chill'], 0.3], sentinel: ['bolt'],
+  champbronze: ['bolt'], champsilver: ['ice', null, ['shriek', 'venomspit', 'toxiccloud'], 0.3], champgold: ['wind', null, ['mindspike', 'nightmare', 'darkwave']],
   mimic: ['fire', null, null, 0.3], titan: ['wind', 'bolt'], prism: [null], suntwin: ['ice', 'fire'], moontwin: ['fire', 'ice', ['chill', 'darkwave']],
 };
 for (const kind in ENEMY_TRAITS) {
@@ -431,7 +450,11 @@ const BOSSES = {
 // Extra monster strength per round of New Game+. 0 = none: monsters already grow with your level,
 // and you find no better gear the second time around. (0.5 would mean +50% HP, STR, DEF, INT, MAG.)
 const ENDLESS_BOOST = 0.02;      // Endless Tower: monsters get this much stronger per floor (on top of gaining levels)
-const NG_PLUS_BOOST = 0.0;
+const NG_PLUS_BOOST = 0;
+// The boost can also be changed while playing: pause menu > Options > New Game+ boost (0% to 25%).
+// That choice is kept in the save. Until a save has made one, the number above is used.
+const NG_BOOST_CHOICES = [0, 0.05, 0.10, 0.15, 0.20, 0.25];
+const ngPlusBoost = () => typeof G.ngBoost === 'number' ? G.ngBoost : NG_PLUS_BOOST;
 // Item shops in New Game+: every item costs its normal price (the "price" in ITEMS) times this.
 // 10 = ten times dearer, 1 = same as a normal game. Weapons and armor are not affected.
 const NG_PLUS_ITEM_PRICE = 10;
@@ -574,6 +597,50 @@ function rollDrop(boss) {
 }
 
 // =====================================================================
+// THE COLOSSEUM (west of Starfall; the fights themselves are in js/colosseum.js)
+// Pay gold to enter a gauntlet of ARENA_FIGHTS battles in a row with no rest in between.
+// Fights give no EXP, gold or drops: only Battle Points (BP), which the prize counter exchanges for PRIZES.
+// =====================================================================
+const ARENA_FIGHTS = 10;               // battles in one gauntlet (the last one is against the tier's champion)
+const ARENA_KO_STAYS = true;           // true = a hero who falls stays down for the next fight (until revived); false = gets up with 1 HP
+// One line per tier:
+//   minLvl      the party's average level needed to enter          fee      gold to enter
+//   bpWin       BP for every fight won (paid when you withdraw or win them all; a defeat forfeits the lot)
+//   bpClear     extra BP for winning all the fights
+//   lvl         monsters are this many levels above the party...   lvlGrow  ...plus this many more with every fight
+//   power       monster strength in fight 1 (1 = normal)           growth   added to that with every fight
+//   early/late  who can show up in the first half / second half    size     [monsters in the first fights, in the later ones]
+//   champion    the last fight (kind + how many levels above the party)
+const ARENA_TIERS = {
+  bronze: { name: 'Bronze', minLvl: 1,  fee: 1000,  bpWin: 4,  bpClear: 60,  lvl: 0, lvlGrow: 0.25, power: 1.0, growth: 0.02, size: [2, 3],
+            early: ['wolf', 'goblin', 'imp', 'skeleton', 'spider', 'orc', 'direwolf'],
+            late:  ['mummy', 'wraith', 'boneknight', 'scorpion', 'ogre', 'darkknight'],
+            champion: [{ kind: 'champbronze', lvl: 3 }] },
+  silver: { name: 'Silver', minLvl: 50, fee: 10000, bpWin: 12, bpClear: 180, lvl: 2, lvlGrow: 0.5,  power: 1.1, growth: 0.03, size: [2, 3],
+            early: ['ogre', 'wyvern', 'darkknight', 'treant', 'harpy', 'lizardman', 'yeti', 'icewolf'],
+            late:  ['salamander', 'lavagolem', 'flamespirit', 'hellhound', 'gargoyle', 'golem', 'fiend', 'archfiend', 'kraken'],
+            champion: [{ kind: 'hellhound', lvl: 4 }, { kind: 'champsilver', lvl: 6 }, { kind: 'hellhound', lvl: 4 }] },
+  gold:   { name: 'Gold',   minLvl: 99, fee: 50000, bpWin: 40, bpClear: 600, lvl: 4, lvlGrow: 1,    power: 1.2, growth: 0.04, size: [3, 3],
+            early: ['mender', 'warcaller', 'hexer', 'sentinel', 'piranha', 'stonecrab', 'drowned', 'angler'],
+            late:  ['coralgolem', 'seadrake', 'kingcrab', 'coralknight', 'abyssshark', 'siren', 'bloomhorror', 'prismcrab', 'tidesinger'],
+            champion: [{ kind: 'champgold', lvl: 10 }] },
+};
+// THE PRIZE COUNTER: what each prize costs in BP. (An item id from ITEMS, or 'medal'.)
+const PRIZES = {
+  bell: 30,
+  warhorn: 50,
+  bulwark: 50,
+  lifedew: 60,
+  manadew: 80,
+  plume: 100,
+  aegis: 120,
+  megalixir: 200,
+  medal: 500,                          // Champion's Medal: not an item, see below
+};
+const ARENA_MEDAL_POINTS = 1;          // a Champion's Medal adds this to EVERY stat of every hero, forever
+const newArena = () => ({ bp: 0, clears: {}, best: {}, medals: 0 });   // this save's Colosseum notes: BP, wins and best run per tier
+
+// =====================================================================
 // DIFFICULTY KNOBS: change how strong EVERY monster is without touching the monsters one by one.
 // 1 = as designed, 1.5 = half as much again, 0.8 = a fifth less.
 //   hp       how much damage a monster can take
@@ -583,13 +650,14 @@ function rollDrop(boss) {
 // There is one set for each way of playing:
 //   first  the first playthrough        plus   New Game+ (on top of NG_PLUS_BOOST per cycle)
 //   tower  the Endless Tower (on top of its growth per floor)
-//   reef   the Coral Deep
+//   reef   the Coral Deep                arena  the Colosseum (on top of ARENA_TIERS)
 // =====================================================================
 const SCALING = {
   first: { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
   plus:  { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
   tower: { hp: 1.5, attack: 1.2, magic: 1.2, defense: 1, exp: .8, gold: .8 },
   reef:  { hp: 1, attack: 1, magic: 1, defense: 1, exp: 1, gold: 1 },   // the Coral Deep (used there INSTEAD of the "plus" set)
+  arena: { hp: 1, attack: 1, magic: 1, defense: 1, exp: 1, gold: 1 },   // the Colosseum (used there INSTEAD of "first" / "plus")
 };
 // DIFFICULTY: chosen when a new game starts and kept with the save. It multiplies the set above.
 // (Add a line to offer another choice, e.g.  Brutal: { hp: 2, attack: 1.5, ... })
@@ -603,7 +671,7 @@ const KNOB_OF = { hp: 'hp', str: 'attack', mag: 'magic', def: 'defense', int: 'd
 // the multiplier for one knob right now, e.g. scaling('hp')
 function scaling(knob) {
   const inReef = typeof player !== 'undefined' && MAPS[player.map] && MAPS[player.map].reefFloor;
-  const set = G.run ? SCALING.tower : inReef ? SCALING.reef : G.ngPlus ? SCALING.plus : SCALING.first;
+  const set = G.run ? SCALING.tower : G.bout ? SCALING.arena : inReef ? SCALING.reef : G.ngPlus ? SCALING.plus : SCALING.first;
   return set[knob] * (DIFFICULTIES[G.difficulty] || DIFFICULTIES.Normal)[knob];
 }
 
@@ -611,7 +679,10 @@ function makeEnemy(kind, lvl) {
   const t = ENEMIES[kind];
   // New Game+ and the Endless Tower can make everything tougher (and pay better)
   // (the Endless Tower has its own growth per floor instead, so NG_PLUS_BOOST does not apply inside it)
-  const boost = G.run ? 1 + G.run.floor * ENDLESS_BOOST : 1 + NG_PLUS_BOOST * G.ngPlus;
+  // (the Colosseum has its own numbers too: see ARENA_TIERS)
+  const boost = G.run ? 1 + G.run.floor * ENDLESS_BOOST
+              : G.bout ? ARENA_TIERS[G.bout.tier].power + (G.bout.fight - 1) * ARENA_TIERS[G.bout.tier].growth
+              : 1 + ngPlusBoost() * G.ngPlus;
   const stat = k => Math.max(1, Math.round(curve(ENEMY_BASE[k], ENEMY_MAX[k], lvl) * (t[k] || 1) * (k === 'mp' ? 1 : boost * scaling(KNOB_OF[k]))));   // (see DIFFICULTY KNOBS above)
   const e = { kind, name: t.name, sprite: t.sprite, big: t.big, lvl, flash: 0,
               spells: t.spells || (t.spell ? [t.spell] : []),          // what it can cast
@@ -716,6 +787,7 @@ function describeSpell(spell, caster) {
 // One line of help text for an item (shown at the bottom of the screen, like spells).
 function describeItem(id) {
   const it = ITEMS[id];
+  if (it.party) return it.desc + '.';                 // the Colosseum prizes say it all themselves
   if (it.ward) return `${it.desc} for the next ${it.ward} steps. Not usable in battle.`;
   if (it.revive) return 'Brings a fallen ally back with a quarter of their HP.';
   if (it.cure) return `${it.desc} for one ally. Only needed in battle.`;
@@ -785,6 +857,9 @@ function resetGame() {                 // a brand new game starts with this
   G.ngPlus = 0;          // how many times the game has been finished and started over (New Game+)
   G.difficulty = 'Normal';   // chosen at NEW GAME (see DIFFICULTIES)
   G.run = null;          // the Endless Tower run in progress, if any (see tower.js)
+  G.bout = null;         // the Colosseum gauntlet in progress, if any: { tier, fight, wins } (see colosseum.js)
+  G.arena = newArena();  // Colosseum notes that are kept: Battle Points, clears, best runs
+  G.ngBoost = null;      // New Game+ boost chosen in Options (null = use NG_PLUS_BOOST)
   G.reef = newReef();    // Coral Deep progress that is kept: checkpoint, deepest floor, bosses beaten
   G.tower = newTower();  // Endless Tower progress that is kept: best floor, checkpoint, relics, bosses beaten
   G.slot = null;         // which save slot this game was last saved to or loaded from
@@ -836,6 +911,7 @@ function spareItemText(got) {
 function useItem(id, hero) {
   let msg = null;
   const it = ITEMS[id];
+  if (it.party) return usePartyItem(id);
   const needsHp = it.hp && hero.hp < maxStat(hero, 'hp'), needsMp = it.mp && hero.mp < maxStat(hero, 'mp');
   if (hero.hp > 0 && (needsHp || needsMp)) {
     const parts = [];                                 // an Elixir restores both
@@ -855,6 +931,35 @@ function useItem(id, hero) {
   }
   if (msg) G.items[id]--;
   return msg;
+}
+
+// The Colosseum prizes work on the whole party at once. Same rule: null (and nothing used up) if it would do nothing.
+function usePartyItem(id) {
+  const it = ITEMS[id], out = [], alive = aliveHeroes();
+  if (it.reviveAll) {
+    const fallen = G.party.filter(h => h.hp <= 0);
+    for (const h of fallen) h.hp = Math.ceil(maxStat(h, 'hp') * it.reviveAll);
+    if (fallen.length) out.push(`${fallen.map(h => h.name).join(' and ')} ${fallen.length > 1 ? 'are' : 'is'} back in the fight!`);
+  }
+  if (it.hp && alive.some(h => h.hp < maxStat(h, 'hp'))) { for (const h of alive) healUnit(h, it.hp); out.push("Everyone's HP is restored."); }
+  if (it.mp && alive.some(h => h.mp < maxStat(h, 'mp'))) { for (const h of alive) h.mp = Math.min(maxStat(h, 'mp'), h.mp + it.mp); out.push("Everyone's MP is restored."); }
+  if (it.cure && alive.some(h => it.cure.some(effect => h.status[effect]))) {
+    for (const h of alive) for (const effect of it.cure) delete h.status[effect];
+    out.push('Every ailment is lifted.');
+  }
+  if (mode === 'battle') {                            // boosts and shields only mean something in a fight
+    for (const stat in it.buff || {}) if (alive.some(h => h.buff[stat] < BUFF_MAX)) {
+      for (const h of alive) h.buff[stat] = Math.min(BUFF_MAX, h.buff[stat] + it.buff[stat]);
+      out.push(`The party's ${stat.toUpperCase()} soars!`);
+    }
+    if (it.shield && alive.some(h => !h.status.shield)) {
+      for (const h of alive) h.status.shield = it.shield;
+      out.push('A shining shield surrounds every hero.');
+    }
+  }
+  if (!out.length) return null;
+  G.items[id]--;
+  return out.join(' ');
 }
 
 // Cast a healing spell on a list of heroes (used in battle and from the menu).
