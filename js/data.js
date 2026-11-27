@@ -612,15 +612,15 @@ const ARENA_KO_STAYS = true;           // true = a hero who falls stays down for
 //   early/late  who can show up in the first half / second half    size     [monsters in the first fights, in the later ones]
 //   champion    the last fight (kind + how many levels above the party)
 const ARENA_TIERS = {
-  bronze: { name: 'Bronze', minLvl: 1,  fee: 1000,  bpWin: 4,  bpClear: 60,  lvl: 0, lvlGrow: 0.25, power: 1.0, growth: 0.02, size: [2, 3],
+  bronze: { name: 'Bronze', minLvl: 1,  fee: 1000,  bpWin: 2,  bpClear: 30,  lvl: 0, lvlGrow: 0.25, power: 1.0, growth: 0.02, size: [2, 3], // bpWin: 4,  bpClear: 60
             early: ['wolf', 'goblin', 'imp', 'skeleton', 'spider', 'orc', 'direwolf'],
             late:  ['mummy', 'wraith', 'boneknight', 'scorpion', 'ogre', 'darkknight'],
             champion: [{ kind: 'champbronze', lvl: 3 }] },
-  silver: { name: 'Silver', minLvl: 50, fee: 10000, bpWin: 12, bpClear: 180, lvl: 2, lvlGrow: 0.5,  power: 1.1, growth: 0.03, size: [2, 3],
+  silver: { name: 'Silver', minLvl: 50, fee: 10000, bpWin: 6, bpClear: 190, lvl: 2, lvlGrow: 0.5,  power: 1.1, growth: 0.03, size: [2, 3], // bpWin: 12, bpClear: 180
             early: ['ogre', 'wyvern', 'darkknight', 'treant', 'harpy', 'lizardman', 'yeti', 'icewolf'],
             late:  ['salamander', 'lavagolem', 'flamespirit', 'hellhound', 'gargoyle', 'golem', 'fiend', 'archfiend', 'kraken'],
             champion: [{ kind: 'hellhound', lvl: 4 }, { kind: 'champsilver', lvl: 6 }, { kind: 'hellhound', lvl: 4 }] },
-  gold:   { name: 'Gold',   minLvl: 99, fee: 50000, bpWin: 40, bpClear: 600, lvl: 4, lvlGrow: 1,    power: 1.2, growth: 0.04, size: [3, 3],
+  gold:   { name: 'Gold',   minLvl: 99, fee: 50000, bpWin: 20, bpClear: 300, lvl: 4, lvlGrow: 1,    power: 1.2, growth: 0.04, size: [3, 3], // bpWin: 40, bpClear: 600
             early: ['mender', 'warcaller', 'hexer', 'sentinel', 'piranha', 'stonecrab', 'drowned', 'angler'],
             late:  ['coralgolem', 'seadrake', 'kingcrab', 'coralknight', 'abyssshark', 'siren', 'bloomhorror', 'prismcrab', 'tidesinger'],
             champion: [{ kind: 'champgold', lvl: 10 }] },

@@ -80,9 +80,9 @@ function boutFightWon() {
     onCancel: () => {},                               // no backing out of this one: choose
     items: [
       { label: champion ? 'Face the champion' : `Fight ${b.fight} of ${ARENA_FIGHTS}`,
-        desc: (champion ? `Win, and it is ${arenaBP(b.tier, ARENA_FIGHTS)} BP in all.  ` : '') + state,
+        desc: (champion ? `Win ${arenaBP(b.tier, ARENA_FIGHTS)} BP in all.  ` : '') + state,
         pick: () => { UI.pop(); nextBoutFight(); } },
-      { label: 'Withdraw', desc: `Stop here and keep your ${arenaBP(b.tier, b.wins)} BP. (Lose a fight and they are gone.)`,
+      { label: 'Withdraw', desc: `Stop here and keep your ${arenaBP(b.tier, b.wins)} BP. (Lose and all are gone.)`,
         pick: () => { UI.pop(); endBout('withdrew'); } },
     ],
   });
@@ -137,7 +137,7 @@ function arenaHerald() {
   const a = G.arena;
   const lines = Object.keys(ARENA_TIERS).map(tier => {
     const t = ARENA_TIERS[tier], best = a.best[tier] || 0, clears = a.clears[tier] || 0;
-    return `${t.name}: ` + (clears ? `champion beaten ${clears} ${clears === 1 ? 'time' : 'times'}.` : best ? `best run ${best} of ${ARENA_FIGHTS} fights.` : 'not yet fought.');
+    return `${t.name}: ` + (clears ? `Champion beaten ${clears} ${clears === 1 ? 'time' : 'times'}.` : best ? `Best run ${best} of ${ARENA_FIGHTS} fights.` : 'not yet fought.');
   });
   UI.say(['HERALD: Hear the deeds of these fighters!', lines.join('  '), `HERALD: Battle Points in hand: ${a.bp}. Spend them at the prize counter.`]);
 }
