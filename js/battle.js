@@ -14,7 +14,7 @@
 // =====================================================================
 
 const BATTLE_ROWS = 7;             // lines shown at once in the Spells / Abilities / Item lists (longer lists scroll)
-const STATUS_TAGS = { poison: ['Psn', '#9be36a'], sleep: ['Slp', '#b8c4ff'], silence: ['Sil', '#c8c8c8'], regen: ['Rgn', '#7dff9a'], refresh: ['Rfr', '#9fd0ff'], shield: ['Shd', '#ffe98a'] };
+const STATUS_TAGS = { poison: ['Psn', '#9be36a'], sleep: ['Slp', '#b8c4ff'], silence: ['Sil', '#c8c8c8'], regen: ['Rgn', '#7dff9a'], refresh: ['Rfr', '#ffe98a'], shield: ['Shd', '#ffe98a'] }; // refresh: ['Rfr', '#9fd0ff']
 const short = hero => hero.name.slice(0, 3);
 const aOrAn = name => (/^[AEIOU]/i.test(name) ? 'an ' : 'a ') + name;   // "a Potion", "an Ether"            // "ART", "SOR", "RAY"
 
