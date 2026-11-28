@@ -637,7 +637,7 @@ const PRIZES = {
   megalixir: 750,
   medal: 1000,                          // Champion's Medal: not an item, see below
 };
-const ARENA_MEDAL_POINTS = 1;          // a Champion's Medal adds this to EVERY stat of every hero, forever
+const ARENA_MEDAL_POINTS = 10;          // a Champion's Medal adds this to EVERY stat of every hero, forever
 const newArena = () => ({ bp: 0, clears: {}, best: {}, medals: 0 });   // this save's Colosseum notes: BP, wins and best run per tier
 
 // =====================================================================
