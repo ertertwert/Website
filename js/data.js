@@ -219,23 +219,23 @@ const ITEMS = {
   hipotion: { name: 'Hi-Potion',    price: 120,  desc: 'HP +120', hp: 120 },
   ether:    { name: 'Ether',        price: 60,  desc: 'MP +20',  mp: 20 },
   hiether:  { name: 'Hi-Ether',     price: 300, desc: 'MP +60',  mp: 60 },
-  elixir:   { name: 'Elixir',       price: 1200, desc: 'Full HP and MP', hp: 9999, mp: 9999 },   // (9999: tower points can lift HP past 999)
+  elixir:   { name: 'Elixir',       price: 1200, desc: 'Full HP and MP', hp: 999, mp: 999 },
   revive:   { name: 'Phoenix Leaf', price: 100,  desc: 'Revives', revive: true },
   // cures for status effects (only useful in battle, because effects end with the battle)
   // antidote: { name: 'Antidote',       price: 30,  desc: 'Cures poison',     cure: ['poison'] },
  //  salts:    { name: 'Smelling Salts', price: 50,  desc: 'Wakes a sleeper',  cure: ['sleep'] },
  //  echoherb: { name: 'Echo Herb',      price: 50,  desc: 'Cures silence',    cure: ['silence'] },
-  remedy:   { name: 'Remedy',         price: 200, desc: 'Cures everything', cure: ['poison', 'sleep', 'silence'] },
+  remedy:   { name: 'Remedy',         price: 200, desc: 'Cures ailments', cure: ['poison', 'sleep', 'silence'] },
   // not used on a hero and not usable in battle: for the next "ward" steps, far fewer monsters attack
   ward:     { name: 'Ward Charm',   price: 80,  desc: 'Fewer battles', ward: 100 },
   // --- COLOSSEUM PRIZES: not sold for gold anywhere, only for Battle Points (see PRIZES further down).
   //   party: true = works on the whole party at once (no "On whom?")      prize: true = kept out of the item shops
   //   hp / mp = how much it restores      cure = which ailments it lifts      reviveAll = share of HP the fallen get up with
   //   buff = how many boosts it adds (BUFF_MAX is the most a stat can hold)   shield = how many hits it blocks completely
-  bell:      { name: 'Purity Bell',   desc: 'Cures ailments of the whole party', party: true, prize: true, cure: ['poison', 'sleep', 'silence'] },
+  bell:      { name: 'Purity Bell',   desc: 'Cures ailments for the whole party', party: true, prize: true, cure: ['poison', 'sleep', 'silence'] },
   lifedew:   { name: 'Life Dew',      desc: 'Restores 255 HP to the whole party',     party: true, prize: true, hp: 255 },
   manadew:   { name: 'Mana Dew',      desc: 'Restores 100 MP to the whole party',     party: true, prize: true, mp: 100 },
-  megalixir: { name: 'Megalixir',     desc: 'Restores all HP and MP of the whole party', party: true, prize: true, hp: 9999, mp: 9999 },
+  megalixir: { name: 'Megalixir',     desc: 'Restores all HP and MP of the whole party', party: true, prize: true, hp: 999, mp: 999 },
   plume:     { name: 'Phoenix Plume', desc: 'Revives every fallen hero with full HP', party: true, prize: true, reviveAll: 1 },
   warhorn:   { name: 'War Horn',      desc: "Raises the whole party's STR", party: true, prize: true, buff: { str: 1 } },
   bulwark:   { name: 'Iron Banner',   desc: "Raises the whole party's DEF", party: true, prize: true, buff: { def: 1 } },
@@ -548,8 +548,8 @@ const statCap  = () => G.ngPlus ? 999 : 255;
 function maxStat(hero, key) {
   const boon = G.run ? G.run.mult[key] || 1 : 1;       // Endless Tower boons raise stats for that run only
   // Levels and boons stop at the cap (255, or 999 in New Game+). The permanent points won in the
-  // Endless Tower (hero.bonus) are added AFTER that, so they are the one way to go past it.
-  return Math.min(statCap(), Math.round(curve(hero.cls.base[key], hero.cls.max[key], hero.lvl) * boon)) + (hero.bonus[key] || 0);
+  // Endless Tower (hero.bonus) are added AFTER that, so they are the one way to go past it. MAX STATS CAPPED AT 999 NOW.
+  return Math.min(statCap(), Math.round(curve(hero.cls.base[key], hero.cls.max[key], hero.lvl) * boon));  // + (hero.bonus[key] || 0)
 }
 
 function makeHero(id) {
@@ -788,9 +788,9 @@ function describeSpell(spell, caster) {
 function describeItem(id) {
   const it = ITEMS[id];
   if (it.party) return it.desc + '.';                 // the Colosseum prizes say it all themselves
-  if (it.ward) return `${it.desc} for the next ${it.ward} steps. Not usable in battle.`;
+  if (it.ward) return `${it.desc} for the next ${it.ward} steps.`; // Not usable in battle.
   if (it.revive) return 'Brings a fallen ally back with a quarter of their HP.';
-  if (it.cure) return `${it.desc} for one ally. Only needed in battle.`;
+  if (it.cure) return `${it.desc} for one ally.`; // Only needed in battle.
   if (it.hp && it.mp) return 'Restores all HP and MP to one ally.';
   if (it.hp) return `Restores ${it.hp} HP to one ally.`;
   return `Restores ${it.mp} MP to one ally.`;
